@@ -31,7 +31,7 @@ import { RouterLink, RouterView } from 'vue-router'
 
         <div class="card">
           <p>This is a card we are talking about, yes this is a card.</p>
-          <button>Learn ></button>
+          <RouterLink :to="'/learntwo'"><button>Learn ></button></RouterLink>
         </div>
 
         <div class="card">
