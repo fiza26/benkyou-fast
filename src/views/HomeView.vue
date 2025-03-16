@@ -25,17 +25,17 @@ import { RouterLink, RouterView } from 'vue-router'
 
       <div class="card-container">
         <div class="card">
-          <p>This is a card we are talking about, yes this is a card.</p>
+          <p>Learn Japanese words one by one.</p>
           <RouterLink :to="'/learn'"><button>Learn ></button></RouterLink>
         </div>
 
         <div class="card">
-          <p>This is a card we are talking about, yes this is a card.</p>
+          <p>Relearn all the words you have learnt so far.</p>
           <RouterLink :to="'/learntwo'"><button>Learn ></button></RouterLink>
         </div>
 
         <div class="card">
-          <p>This is a card we are talking about, yes this is a card.</p>
+          <p>Advanced language acquisition learning.</p>
           <button>Learn ></button>
         </div>
       </div>
@@ -99,7 +99,7 @@ main {
       justify-content: space-between;
       font-family: "Poppins", sans-serif;
       background-color: #ecf0f1;
-      max-width: 380px;
+      // max-width: 380px;
       height: 200px;
       padding: 13px;
       border-radius: 15px;
