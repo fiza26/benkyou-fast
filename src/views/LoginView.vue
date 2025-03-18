@@ -1,5 +1,28 @@
 <script setup>
+import { ref, computed } from 'vue'
+import router from '@/router';
+import supabase from '@/supabase';
 
+
+const email = ref('')
+const password = ref('')
+
+async function login() {
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.value,
+        password: password.value
+    })
+    if (error) {
+        console.log('Login Error')
+        window.alert('Login error, incorrect email or password')
+        email.value = ''
+        password.value = ''
+    } else {
+        setTimeout(() => {
+            router.push({ name: 'home' })
+        }, 1000)
+    }
+}
 </script>
 
 <template>
@@ -8,10 +31,10 @@
             <div class="card-container">
                 <div class="login-card">
                     <label for="">Email</label><br><br>
-                    <input type="text" placeholder="Enter your email" required>
+                    <input type="text" placeholder="Enter your email" v-model="email" required>
                     <label for="">Password</label><br><br>
-                    <input type="password" placeholder="Enter your password" required>
-                    <button type="submit">Login</button>
+                    <input type="password" placeholder="Enter your password" v-model="password" required>
+                    <button type="submit" @click="login()">Login</button>
                 </div>
             </div>
         </div>
@@ -37,11 +60,6 @@
         justify-content: center;
 
         .login-card {
-            // display: flex;
-            // flex-direction: column;
-            // justify-content: space-between;
-            // align-items: center;
-            // text-align: center;
             font-family: "Poppins", sans-serif;
             background-color: #ecf0f1;
             width: 350px;
