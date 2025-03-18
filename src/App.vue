@@ -1,6 +1,22 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { Icon } from '@iconify/vue';
+import router from '@/router'
+import { Icon } from '@iconify/vue'
+import supabase from '@/supabase'
+
+
+async function logout() {
+  try {
+    const { error } = await supabase.auth.signOut()
+    if (!error) { 
+      router.push({ name: 'login' })
+    } else {
+      console.error('Logout error', error)
+    }
+  } catch (err) {
+    console.error('Unexpected error', err)
+  }
+}
 </script>
 
 <template>
@@ -13,6 +29,7 @@ import { Icon } from '@iconify/vue';
       <div class="nav-link">
         <span><Icon icon="iconoir:leaderboard-star"  style="font-size: 25px; margin-right: 6px; color: black" /> Leaderboard</span>
         <span><Icon icon="grommet-icons:scorecard"  style="font-size: 19px; margin-right: 6px; color: black" /> 3500 Points</span>
+        <span @click='logout()'><Icon icon="solar:logout-broken" width="24" height="24" /> Logout</span>
       </div>
     </nav>
   </header>
@@ -62,6 +79,6 @@ nav span {
 nav .nav-link {
   display: flex;
   justify-content: space-around;
-  width: 270px;
+  width: 350px;
 }
 </style>
