@@ -1,9 +1,10 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 import router from '@/router'
 import { Icon } from '@iconify/vue'
 import supabase from '@/supabase'
 
+const route = useRoute()
 
 async function logout() {
   try {
@@ -22,14 +23,14 @@ async function logout() {
 <template>
   <header>
     <nav>
-      <RouterLink :to="'/'"><span>
+      <RouterLink :to="'/'" v-if="route.name != 'login'"><span>
         <Icon icon="mdi:home" style="font-size: 25px; vertical-align: middle;" color="black" />
           <!-- Home -->
         </span></RouterLink>
       <div class="nav-link">
-        <span><Icon icon="iconoir:leaderboard-star"  style="font-size: 25px; margin-right: 6px; color: black" /> Leaderboard</span>
-        <span><Icon icon="grommet-icons:scorecard"  style="font-size: 19px; margin-right: 6px; color: black" /> 3500 Points</span>
-        <span @click='logout()'><Icon icon="solar:logout-broken" width="24" height="24" /> Logout</span>
+        <span v-if="route.name != 'login'"><Icon icon="iconoir:leaderboard-star"  style="font-size: 25px; margin-right: 6px; color: black" /> Leaderboard</span>
+        <span v-if="route.name != 'login'"><Icon icon="grommet-icons:scorecard"  style="font-size: 19px; margin-right: 6px; color: black" /> 3500 Points</span>
+        <span @click='logout()' v-if="route.name != 'login'"><Icon icon="solar:logout-broken" width="24" height="24" /> Logout</span>
       </div>
     </nav>
   </header>

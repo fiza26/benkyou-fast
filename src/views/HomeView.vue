@@ -1,6 +1,9 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watchEffect, onMounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
+import router from '@/router';
+import supabase from '@/supabase';
+
 </script>
 
 <template>

@@ -1,7 +1,24 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watchEffect, watch } from 'vue'
 import router from '@/router';
 import supabase from '@/supabase';
+
+const localUser = ref(null)
+
+async function isLoggedIn() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+        localUser.value = session
+    }
+}
+
+onMounted(isLoggedIn)
+
+watchEffect(() => {
+    if (localUser.value) {
+        router.push({ name: 'home' })
+    }
+})
 
 
 const email = ref('')
@@ -35,6 +52,7 @@ async function login() {
                     <label for="">Password</label><br><br>
                     <input type="password" placeholder="Enter your password" v-model="password" required>
                     <button type="submit" @click="login()">Login</button>
+                    {{ localUser }}
                 </div>
             </div>
         </div>
