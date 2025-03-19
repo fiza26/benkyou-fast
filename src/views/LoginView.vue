@@ -20,7 +20,6 @@ watchEffect(() => {
     }
 })
 
-
 const email = ref('')
 const password = ref('')
 
@@ -52,7 +51,7 @@ async function login() {
                     <label for="">Password</label><br><br>
                     <input type="password" placeholder="Enter your password" v-model="password" required>
                     <button type="submit" @click="login()">Login</button>
-                    {{ localUser }}
+                    <p class="signup-text">Don't have an account? <span>create one</span></p>
                 </div>
             </div>
         </div>
@@ -81,7 +80,7 @@ async function login() {
             font-family: "Poppins", sans-serif;
             background-color: #ecf0f1;
             width: 350px;
-            height: 370px;
+            height: 400px;
             padding: 30px;
             border-radius: 15px;
             box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
@@ -114,7 +113,27 @@ async function login() {
                 background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
             }
 
+            .signup-text {
+                margin-top: 50px;
+                font-size: 15px;
+                text-align: center;
+
+                span {
+                    color: white;
+                    padding: 3px;
+                    cursor: pointer;
+                    text-decoration: underline;
+                    background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+                }
+            }
+
         }
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .container .card-container .login-card .signup-text {
+        font-size: 10px;
     }
 }
 </style>
