@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed, watchEffect, onMounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
-import router from '@/router';
-import supabase from '@/supabase';
+import { Icon } from '@iconify/vue'
+import router from '@/router'
+import supabase from '@/supabase'
 
 </script>
 
@@ -29,16 +30,19 @@ import supabase from '@/supabase';
       <div class="card-container">
         <div class="card">
           <p>Learn Japanese words one by one.</p>
+          <Icon icon="hugeicons:online-learning-01" width="100" height="100" />
           <RouterLink :to="'/learn'"><button>Learn ></button></RouterLink>
         </div>
 
         <div class="card">
           <p>Relearn all the words you have learnt so far.</p>
+          <Icon icon="material-symbols:memory" width="100" height="100" />
           <RouterLink :to="'/learntwo'"><button>Learn ></button></RouterLink>
         </div>
 
         <div class="card">
           <p>Advanced language acquisition learning.</p>
+          <Icon icon="fluent-emoji-high-contrast:thinking-face" width="90" height="90" />
           <button>Learn ></button>
         </div>
       </div>
@@ -102,7 +106,6 @@ main {
       justify-content: space-between;
       font-family: "Poppins", sans-serif;
       background-color: #ecf0f1;
-      // max-width: 380px;
       height: 200px;
       padding: 13px;
       border-radius: 15px;
@@ -111,10 +114,8 @@ main {
       margin-bottom: 15px;
       transition: ease-in-out 0.5s;
       backdrop-filter: blur(10px);
-      background-color: #e5e5f7;
       opacity: 0.8;
       background-size: 20px 20px;
-      background-image: repeating-linear-gradient(0deg, #00d2ff, #3a47d5 1px, #e5e5f7 1px, #e5e5f7);
 
       button {
         font-family: "Poppins", sans-serif;

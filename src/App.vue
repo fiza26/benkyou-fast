@@ -23,14 +23,20 @@ async function logout() {
 <template>
   <header>
     <nav>
+      <div class="home">
       <RouterLink :to="'/'" v-if="route.name != 'login'"><span>
         <Icon icon="mdi:home" style="font-size: 25px; vertical-align: middle;" color="black" />
           <!-- Home -->
         </span></RouterLink>
+      </div>
       <div class="nav-link">
         <span v-if="route.name != 'login'"><Icon icon="iconoir:leaderboard-star"  style="font-size: 25px; margin-right: 6px; color: black" /> Leaderboard</span>
         <span v-if="route.name != 'login'"><Icon icon="grommet-icons:scorecard"  style="font-size: 19px; margin-right: 6px; color: black" /> 3500 Points</span>
         <span @click='logout()' v-if="route.name != 'login'"><Icon icon="solar:logout-broken" width="24" height="24" /> Logout</span>
+      </div>
+      <div class="mobile-nav-link">
+        <Icon icon="arcticons:hamburger-menu" width="30" height="30" />
+
       </div>
     </nav>
   </header>
@@ -59,7 +65,8 @@ a {
 nav {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  // justify-content: space-around;
+  justify-content: space-between;
   height: 60px;
   width: 100%;
   position: fixed;
@@ -69,6 +76,10 @@ nav {
   -webkit-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
   -moz-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
   box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
+}
+
+nav .home {
+  margin-left: 80px;
 }
 
 nav span {
@@ -81,5 +92,20 @@ nav .nav-link {
   display: flex;
   justify-content: space-around;
   width: 350px;
+  margin-right: 80px
+}
+
+nav .mobile-nav-link {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  nav .nav-link {
+    display: none;
+  }
+  nav .mobile-nav-link {
+    display: block;
+    margin-right: 80px;
+  }
 }
 </style>

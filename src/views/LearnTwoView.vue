@@ -1,49 +1,37 @@
 <script setup>
+import { ref, computed, watch } from 'vue'
+import { Icon } from '@iconify/vue'
+import supabase from '@/supabase'
 
+const learnedWords = ref([''])
+
+async function fetchWords() {
+    const { data, error } = await supabase.from('words').select()
+    if (data) {
+        learnedWords.value = data
+    } else {
+        console.log(error)
+    }
+    console.log(learnedWords.value)
+}
+fetchWords()
 </script>
 
 <template>
-<main>
-    <div class="container">
+    <main>
+        <div class="container">
             <div class="card-container">
-                <div class="card">
-                    <h1>Test</h1>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
+                <div class="card" v-for="word in learnedWords" :key="word.id" v-if="learnedWords.length > 0">
+                    <h1>{{ word.word }}</h1>
+                    <p>{{ word.meaning }}</p>
+                    <p>{{ word.furigana }}</p>
+                    <p>{{ word.romaji }}</p>
+                    <p>Level : {{ word.level }}</p>
                 </div>
-                <div class="card">
-                    <h1>Test</h1>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                </div>
-                <div class="card">
-                    <h1>Test</h1>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                </div>
-                <div class="card">
-                    <h1>Test</h1>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                </div>
-                <div class="card">
-                    <h1>Test</h1>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                </div>
+                <p v-else>No data</p>
             </div>
         </div>
-</main>
+    </main>
 </template>
 
 <style lang="scss" scoped>
@@ -66,7 +54,6 @@ main {
     .card-container {
         display: flex;
         flex-wrap: wrap;
-        // justify-content: center;
 
         .card {
             display: flex;
@@ -76,8 +63,8 @@ main {
             text-align: center;
             font-family: "Poppins", sans-serif;
             background-color: #ecf0f1;
-            width: 250px;
-            height: 250px;
+            width: 270px;
+            height: 270px;
             padding: 13px;
             border-radius: 15px;
             box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
@@ -85,6 +72,11 @@ main {
             margin-bottom: 15px;
             transition: ease-in-out 0.5s;
             backdrop-filter: blur(10px);
+            cursor: pointer;
+
+            &:hover {
+                transform: scale(1.020);
+            }
 
             .button-action {
                 width: 100%;

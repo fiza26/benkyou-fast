@@ -4,8 +4,22 @@ import axios from 'axios'
 import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
 import confetti from 'canvas-confetti'
+import supabase from '@/supabase'
 
 const router = useRouter()
+
+const learnedWords = ref([''])
+
+async function fetchWords() {
+    const { data, error } = await supabase.from('words').select()
+    if (data) {
+        learnedWords.value = data
+    } else {
+        console.log(error)
+    }
+    console.log(learnedWords.value)
+}
+fetchWords()
 
 const vocabulary = ref([])
 const wordLevel = ref(1)
@@ -15,7 +29,11 @@ const getVocab = async () => {
         const response = await axios.get(`https://jlpt-vocab-api.vercel.app/api/words/all?level=${wordLevel.value}`)
         console.log('Full Response:', response.data)
         if (response.data) {
-            vocabulary.value = response.data
+            // vocabulary.value = response.data
+            // Filter out words that are already learned
+            vocabulary.value = response.data.filter(word =>
+                !learnedWords.value.some(learned => learned.word === word.word)
+            )
         }
         console.log('Vocabulary:', vocabulary.value)
     } catch (error) {
@@ -27,7 +45,7 @@ getVocab()
 const currentWord = ref(0)
 const message = ref('')
 
-const nextWord = () => {
+const nextWord = (word) => {
     if (currentWord.value < vocabulary.value.length - 1) {
         vocabulary.value[currentWord.value]
         currentWord.value++
@@ -39,6 +57,22 @@ const nextWord = () => {
         wordLevel.value++
         currentWord.value = 0
         getVocab()
+    }
+    saveWord(word)
+}
+
+async function saveWord(word) {
+    const { error } = await supabase.from('words').insert({
+        word: word.word,
+        meaning: word.meaning,
+        furigana: word.furigana,
+        romaji: word.romaji,
+        level: word.level
+    })
+
+    if (error) {
+        console.log(error)
+        window.alert('Insert error')
     }
 }
 
@@ -123,7 +157,7 @@ const achievementOkay = () => {
                     <!-- <p>{{ vocabulary[currentWord].level }}</p> -->
                     <p v-if="message">{{ message }}</p>
                     <div class="button-action">
-                        <button @click="nextWord()">Next ></button>
+                        <button @click="nextWord(vocabulary[currentWord])">Next ></button>
                         <button @click="stop()" v-if="currentWord > 0">Stop ></button>
                     </div>
                 </div>
