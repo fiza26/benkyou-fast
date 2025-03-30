@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import supabase from '@/supabase'
 
-const learnedWords = ref([''])
+const learnedWords = ref([])
 
 async function fetchWords() {
     const { data, error } = await supabase.from('words').select()
@@ -21,6 +21,35 @@ const showRelearnForm = ref(false)
 const relearnState = (() => {
     showRelearnForm.value = !showRelearnForm.value
 })
+
+const howManyWords = ref(null)
+const wordLevel = ref(null)
+const sortedWords = ref([])
+
+const relearnWords = () => {
+    const numWords = parseInt(howManyWords.value) || 0
+    const level = parseInt(wordLevel.value) || 0
+
+    if (!numWords) {
+        window.alert('Please enter a valid number of words')
+        return
+    } else if (!level || level > 5) { 
+        window.alert('Please enter a valid level')
+        return
+    }
+
+    if (numWords > learnedWords.value.length) {
+        window.alert('Number of words inputted is higher than the total of words learned')
+        return
+    }
+
+    sortedWords.value = learnedWords.value
+        .filter(word => Number(word.level) === level) // Ensure `word.level` is a number
+        .slice(0, numWords) // Limit number of words
+
+    console.log('Sorted Words:', sortedWords.value) // Debugging
+}
+
 </script>
 
 <template>
@@ -32,24 +61,32 @@ const relearnState = (() => {
                 <button @click="relearnState()" v-else>Close</button>
                 <hr v-if="showRelearnForm">
                 <div class="relearn-form" v-if="showRelearnForm">
-                    <form>
+                    <form @submit.prevent>
                         <label for="">How many words do you want to learn today?</label><br><br>
-                        <input type="number" placeholder="Number of words"><br>
+                        <input type="number" placeholder="Number of words" v-model="howManyWords"><br>
                         <label for="">Choose level</label><br><br>
-                        <input type="number" placeholder="Choose level (1-3)"><br>
-                        <button>Ok</button>
+                        <input type="number" placeholder="Choose level (1-5)" v-model="wordLevel"><br>
+                        <button @click="relearnWords()">Ok</button>
                     </form>
                 </div>
             </div>
             <div class="card-container">
-                <div class="card" v-for="word in learnedWords" :key="word.id" v-if="learnedWords.length > 0">
+                <div class="card" v-for="word in learnedWords" :key="word.id"
+                    v-if="learnedWords.length > 0 && sortedWords.length < 1">
                     <h1>{{ word.word }}</h1>
                     <p>{{ word.meaning }}</p>
                     <p>{{ word.furigana }}</p>
                     <p>{{ word.romaji }}</p>
                     <p>Level : {{ word.level }}</p>
                 </div>
-                <p v-else>No data</p>
+                <!-- <p v-else>No data</p> -->
+                <div class="card" v-for="word in sortedWords" :key="word.id" v-if="sortedWords.length > 0">
+                    <h1>{{ word.word }}</h1>
+                    <p>{{ word.meaning }}</p>
+                    <p>{{ word.furigana }}</p>
+                    <p>{{ word.romaji }}</p>
+                    <p>Level : {{ word.level }}</p>
+                </div>
             </div>
         </div>
     </main>
