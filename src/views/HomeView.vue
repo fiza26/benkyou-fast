@@ -35,7 +35,7 @@ import supabase from '@/supabase'
         </div>
 
         <div class="card">
-          <p>Relearn all the words you have learnt so far.</p>
+          <p>Relearn all the words you have learned so far.</p>
           <Icon icon="material-symbols:memory" width="100" height="100" />
           <RouterLink :to="'/learntwo'"><button>Learn ></button></RouterLink>
         </div>

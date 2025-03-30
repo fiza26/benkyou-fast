@@ -97,6 +97,7 @@ nav .nav-link {
 
 nav .mobile-nav-link {
   display: none;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {

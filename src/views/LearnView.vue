@@ -130,7 +130,7 @@ const achievementOkay = () => {
     <main>
         <div class="modal" v-if="modalState">
             <div class="modal-content">
-                <h1>You have learnt {{ currentWord }} words this session
+                <h1>You have learned {{ currentWord }} words this session
                     <Icon icon="solar:confetti-outline" style="vertical-align: middle; color: white" />
                 </h1>
                 <button @click="ok()">Ok</button>

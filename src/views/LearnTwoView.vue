@@ -15,11 +15,32 @@ async function fetchWords() {
     console.log(learnedWords.value)
 }
 fetchWords()
+
+const showRelearnForm = ref(false)
+
+const relearnState = (() => {
+    showRelearnForm.value = !showRelearnForm.value
+})
 </script>
 
 <template>
     <main>
         <div class="container">
+            <div class="relearn-card">
+                <h3>Relearn all the words you have learned so far to keep your memory of the vocabulary sharp.</h3>
+                <button @click="relearnState()" v-if="!showRelearnForm">Start</button>
+                <button @click="relearnState()" v-else>Close</button>
+                <hr v-if="showRelearnForm">
+                <div class="relearn-form" v-if="showRelearnForm">
+                    <form>
+                        <label for="">How many words do you want to learn today?</label><br><br>
+                        <input type="number" placeholder="Number of words"><br>
+                        <label for="">Choose level</label><br><br>
+                        <input type="number" placeholder="Choose level (1-3)"><br>
+                        <button>Ok</button>
+                    </form>
+                </div>
+            </div>
             <div class="card-container">
                 <div class="card" v-for="word in learnedWords" :key="word.id" v-if="learnedWords.length > 0">
                     <h1>{{ word.word }}</h1>
@@ -45,11 +66,65 @@ main {
     margin-top: 80px;
 }
 
+hr {
+    margin-top: 20px;
+}
+
 .container {
     margin: 80px;
     display: flex;
     flex-direction: column;
     transition: ease-in-out 0.5s;
+
+    .relearn-card {
+        max-width: 100%;
+        border-radius: 15px;
+        color: white;
+        padding: 15px;
+        background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+
+        button {
+            font-family: "Poppins", sans-serif;
+            border: none;
+            border-radius: 15px;
+            width: 100px;
+            padding: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: ease-in-out 0.50s;
+
+            &:hover {
+                transform: scale(1.1);
+            }
+        }
+
+
+        .relearn-form {
+            margin-top: 10px;
+
+            label {
+                margin-bottom: 10px;
+            }
+
+            input {
+                font-family: "Poppins", sans-serif;
+                width: 100%;
+                margin-bottom: 15px;
+                border: none;
+                border-radius: 15px;
+                padding: 7px;
+                background-color: #dddd;
+            }
+
+            button {
+                width: 100%;
+
+                &:hover {
+                    transform: scale(1.010);
+                }
+            }
+        }
+    }
 
     .card-container {
         display: flex;
