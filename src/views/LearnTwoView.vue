@@ -14,7 +14,10 @@ async function fetchWords() {
     }
     console.log(learnedWords.value)
 }
-fetchWords()
+
+setTimeout(() => {
+    fetchWords()
+}, '1000')
 
 const showRelearnForm = ref(false)
 
@@ -33,7 +36,7 @@ const relearnWords = () => {
     if (!numWords) {
         window.alert('Please enter a valid number of words')
         return
-    } else if (!level || level > 5) { 
+    } else if (!level || level > 5) {
         window.alert('Please enter a valid level')
         return
     }
@@ -79,7 +82,9 @@ const relearnWords = () => {
                     <p>{{ word.romaji }}</p>
                     <p>Level : {{ word.level }}</p>
                 </div>
-                <!-- <p v-else>No data</p> -->
+                <div class="no-data" v-if="learnedWords.length === 0">
+                    <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
+                </div>
                 <div class="card" v-for="word in sortedWords" :key="word.id" v-if="sortedWords.length > 0">
                     <h1>{{ word.word }}</h1>
                     <p>{{ word.meaning }}</p>
@@ -209,6 +214,12 @@ hr {
                     }
                 }
             }
+        }
+
+        .no-data {
+            margin-top: 10px;
+            margin-left: auto;
+            margin-right: auto;
         }
     }
 }
