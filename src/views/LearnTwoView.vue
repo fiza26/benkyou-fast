@@ -46,6 +46,12 @@ const relearnWords = () => {
         return
     }
 
+    const levelExists = learnedWords.value.some(word => Number(word.level) === level)
+    if (!levelExists) {
+        window.alert('Level inputted is not available on learned words yet')
+        return
+    }
+
     sortedWords.value = learnedWords.value
         .filter(word => Number(word.level) === level) // Ensure `word.level` is a number
         .slice(0, numWords) // Limit number of words
