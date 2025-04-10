@@ -99,7 +99,7 @@ const loadingTimeout = (() => {
                     <p>{{ word.romaji }}</p>
                     <p>Level : {{ word.level }}</p>
                 </div>
-                <div class="no-data" v-if="learnedWords.length === 0">
+                <div class="no-data" v-if="learnedWords.length === 0 || sortedWordsLoading">
                     <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
                 </div>
                 <div class="card" v-for="word in sortedWords" :key="word.id"
@@ -109,9 +109,6 @@ const loadingTimeout = (() => {
                     <p>{{ word.furigana }}</p>
                     <p>{{ word.romaji }}</p>
                     <p>Level : {{ word.level }}</p>
-                </div>
-                <div class="no-data" v-if="sortedWordsLoading">
-                    <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
                 </div>
             </div>
         </div>
