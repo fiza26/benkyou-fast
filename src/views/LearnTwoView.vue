@@ -28,6 +28,7 @@ const relearnState = (() => {
 const howManyWords = ref(null)
 const wordLevel = ref(null)
 const sortedWords = ref([])
+const sortedWordsLoading = ref(false)
 
 const relearnWords = () => {
     const numWords = parseInt(howManyWords.value) || 0
@@ -56,8 +57,18 @@ const relearnWords = () => {
         .filter(word => Number(word.level) === level) // Ensure `word.level` is a number
         .slice(0, numWords) // Limit number of words
 
+    sortedWordsLoading.value = true
+
+    loadingTimeout()
+
     console.log('Sorted Words:', sortedWords.value) // Debugging
 }
+
+const loadingTimeout = (() => {
+    setTimeout(() => {
+        sortedWordsLoading.value = false
+    }, '1000')
+})
 
 </script>
 
@@ -91,12 +102,16 @@ const relearnWords = () => {
                 <div class="no-data" v-if="learnedWords.length === 0">
                     <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
                 </div>
-                <div class="card" v-for="word in sortedWords" :key="word.id" v-if="sortedWords.length > 0">
+                <div class="card" v-for="word in sortedWords" :key="word.id"
+                    v-if="sortedWords.length > 0 && !sortedWordsLoading">
                     <h1>{{ word.word }}</h1>
                     <p>{{ word.meaning }}</p>
                     <p>{{ word.furigana }}</p>
                     <p>{{ word.romaji }}</p>
                     <p>Level : {{ word.level }}</p>
+                </div>
+                <div class="no-data" v-if="sortedWordsLoading">
+                    <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
                 </div>
             </div>
         </div>
