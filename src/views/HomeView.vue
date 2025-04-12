@@ -9,6 +9,14 @@ import supabase from '@/supabase'
 
 <template>
   <main>
+    <div class="modal">
+      <div class="modal-content">
+        <Icon icon="fluent-emoji:fire" width="100" height="100" />
+        <h1>1 day streak</h1>
+        <p>Let's continue the journey</p>
+        <button>Okay</button>
+      </div>
+    </div>
     <div class="container">
       <div class="profile-container">
         <div class="profile">
@@ -60,6 +68,53 @@ import supabase from '@/supabase'
 
 main {
   margin-top: 80px;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.5s ease;
+
+  .modal-content {
+    animation: moveUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+    background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    width: 70%;
+    height: 100%;
+    margin-top: 50%;
+    margin-right: 7px;
+    margin-left: 7px;
+    text-align: center;
+    -webkit-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
+    box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
+
+    button {
+      font-family: "Poppins", sans-serif;
+      margin-top: 13px;
+      border: none;
+      padding: 5px;
+      border-radius: 15px;
+      width: 30%;
+      background-color: white;
+      transition: ease-in-out 0.5s;
+      cursor: pointer;
+
+      &:hover {
+        transform: scale(1.030);
+      }
+    }
+  }
 }
 
 .container {
@@ -134,6 +189,26 @@ main {
       }
     }
   }
+}
+
+@keyframes moveUp {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        border-radius: 15px;
+    }
+
+    90% {
+        border-radius: 15px;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 @media (max-width: 768px) {
