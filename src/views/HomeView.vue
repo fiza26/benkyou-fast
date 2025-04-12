@@ -5,16 +5,22 @@ import { Icon } from '@iconify/vue'
 import router from '@/router'
 import supabase from '@/supabase'
 
+const streakModalState = ref(true)
+
+const closeStreakModal = (() => {
+  streakModalState.value = false
+})
+
 </script>
 
 <template>
   <main>
-    <div class="modal">
+    <div class="modal" v-if="streakModalState">
       <div class="modal-content">
         <Icon icon="fluent-emoji:fire" width="100" height="100" />
         <h1>1 day streak</h1>
         <p>Let's continue the journey</p>
-        <button>Okay</button>
+        <button @click="closeStreakModal()">Okay</button>
       </div>
     </div>
     <div class="container">
