@@ -70,6 +70,10 @@ const loadingTimeout = (() => {
     }, '1000')
 })
 
+const advancedLearning = ((word) => {
+    console.log('clicked :', word.id)
+})
+
 </script>
 
 <template>
@@ -103,7 +107,7 @@ const loadingTimeout = (() => {
                     <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
                 </div>
                 <div class="card" v-for="word in sortedWords" :key="word.id"
-                    v-if="sortedWords.length > 0 && !sortedWordsLoading">
+                    v-if="sortedWords.length > 0 && !sortedWordsLoading" @click="advancedLearning(word)">
                     <h1>{{ word.word }}</h1>
                     <p>{{ word.meaning }}</p>
                     <p>{{ word.furigana }}</p>
