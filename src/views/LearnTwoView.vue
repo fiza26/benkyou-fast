@@ -70,9 +70,22 @@ const loadingTimeout = (() => {
     }, '1000')
 })
 
-const advancedLearning = ((word) => {
-    console.log('clicked :', word.id)
-})
+async function advancedLearning(word) {
+    const { error } = await supabase.from('advanced_learning').insert({
+        word: word.word,
+        meaning: word.meaning,
+        furigana: word.furigana,
+        romaji: word.romaji,
+        level: word.level
+    })
+
+    if (error) {
+        console.log(error)
+        window.alert('Insert error')
+    } else {
+        window.alert('Selected word has been added to advanced learning')
+    }
+}
 
 </script>
 
@@ -139,6 +152,7 @@ hr {
     display: flex;
     flex-direction: column;
     transition: ease-in-out 0.5s;
+    overflow-x: hidden;
 
     .relearn-card {
         max-width: 100%;
@@ -215,6 +229,11 @@ hr {
 
             &:hover {
                 transform: scale(1.020);
+            }
+
+            &:active {
+                color: white;
+                background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
             }
 
             .button-action {
