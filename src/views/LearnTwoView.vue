@@ -70,7 +70,34 @@ const loadingTimeout = (() => {
     }, '1000')
 })
 
+const words = ref([])
+
+async function getWords() {
+    const { data, error } = await supabase.from('advanced_learning').select()
+
+    if (data) {
+        words.value = data
+    } else {
+        console.log('Error', error)
+    }
+}
+getWords()
+
+console.log('Words from advanced learning', words.value)
+
 async function advancedLearning(word) {
+    if (!words) {
+        window.alert('Words are not populated')
+        return
+    }
+
+    const exists = words.value.some(advanced => advanced.word === word.word)
+
+    if (exists) {
+        window.alert('This word is already in advanced learning')
+        return
+    }
+
     const { error } = await supabase.from('advanced_learning').insert({
         word: word.word,
         meaning: word.meaning,
@@ -83,6 +110,7 @@ async function advancedLearning(word) {
         console.log(error)
         window.alert('Insert error')
     } else {
+        words.value.push(word)
         window.alert('Selected word has been added to advanced learning')
     }
 }
