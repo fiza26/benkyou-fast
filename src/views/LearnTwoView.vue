@@ -55,6 +55,7 @@ const relearnWords = () => {
 
     sortedWords.value = learnedWords.value
         .filter(word => Number(word.level) === level) // Ensure `word.level` is a number
+        .sort(() => Math.random() - 0.5) // Randomize
         .slice(0, numWords) // Limit number of words
 
     sortedWordsLoading.value = true
