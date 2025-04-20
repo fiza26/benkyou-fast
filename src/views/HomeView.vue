@@ -57,7 +57,7 @@ const closeStreakModal = (() => {
         <div class="card">
           <p>Advanced language acquisition learning.</p>
           <Icon icon="fluent-emoji-high-contrast:thinking-face" width="90" height="90" />
-          <button>Learn ></button>
+          <RouterLink :to="'/learnthree'"><button>Learn ></button></RouterLink>
         </div>
       </div>
     </div>

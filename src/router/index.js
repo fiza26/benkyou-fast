@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LearnView from '../views/LearnView.vue'
 import LearnTwoView from '../views/LearnTwoView.vue'
+import LearnThreeView from '../views/LearnThreeView.vue'
 import LoginView from '../views/LoginView.vue'
 import supabase from '@/supabase'
 
@@ -35,6 +36,12 @@ const router = createRouter({
       name: 'learntwo',
       component: LearnTwoView,
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/learnthree',
+      name: 'learnthree',
+      component: LearnThreeView,
+      // meta: { requiresAuth: true }
     },
     {
       path: '/login',
