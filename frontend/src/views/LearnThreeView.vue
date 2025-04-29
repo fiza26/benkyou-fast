@@ -6,6 +6,9 @@ const modalState = ref(true)
 const textsLearningState = ref(false)
 const imagesLearningState = ref(false)
 
+const closeModal = (() => {
+    history.back()
+})
 
 
 </script>
@@ -19,7 +22,7 @@ const imagesLearningState = ref(false)
                     <span>Language acquisition through texts</span>
                     <span>Language acquisition through images</span>
                 </div>
-                <button>Close</button>
+                <button @click="closeModal()">Close</button>
             </div>
         </div>
         <div class="container">
