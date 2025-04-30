@@ -33,23 +33,38 @@ app.post('/', async (req, res) => {
 
 let data = ''
 
-async function gemini() {
+// async function gemini() {
+//     try {
+//         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+
+//         const prompt = `Make a simple sentence with the word ${words[0].word}`
+
+//         const result = await model.generateContent(prompt)
+
+//         console.log('Gemini full response:', JSON.stringify(result, null, 2))
+
+//         data = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text
+
+//         console.log('Generated sentence:', data)
+//     } catch (error) {
+//         console.log('Error:', error)
+//     }
+// }
+
+app.post('/gemini', async(req, res) => {
     try {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
-
         const prompt = `Make a simple sentence with the word ${words[0].word}`
-
         const result = await model.generateContent(prompt)
-
-        console.log('Gemini full response:', JSON.stringify(result, null, 2))
 
         data = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text
 
-        console.log('Generated sentence:', data)
+        res.json({ result: data })
     } catch (error) {
-        console.log('Error:', error)
+        console.log(error)
+        res.status(500).json({ error: 'Something went wrong' })
     }
-}
+})
 
 async function startServer() {
     await getWords()
@@ -63,7 +78,7 @@ async function startServer() {
         console.log('First word :', words[0])
     }
 
-    await gemini()
+    // await gemini()
 
     app.listen(port, () => console.log('Listening on port 3000'))
 }

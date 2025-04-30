@@ -1,14 +1,39 @@
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios'
 
 const modalState = ref(true)
 
 const textsLearningState = ref(false)
 const imagesLearningState = ref(false)
 
+const textsLearning = (() => {
+    textsLearningState.value = true
+    modalState.value = false
+})
+
+const imagesLearning = (() => {
+    imagesLearningState.value = true
+    modalState.value = false
+})
+
 const closeModal = (() => {
     history.back()
 })
+
+
+const learningTexts = ref('')
+const advancedTexts = async () => {
+    try {
+        const response = await axios.post(`http://localhost:3000/gemini`)
+        console.log('Response:', response.data.result)
+        learningTexts.value = response.data.result
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+advancedTexts()
 
 
 </script>
@@ -19,13 +44,18 @@ const closeModal = (() => {
             <div class="modal-content">
                 <h1>Choose your way of learning today!</h1><br>
                 <div class="learning-choice">
-                    <span>Language acquisition through texts</span>
-                    <span>Language acquisition through images</span>
+                    <span @click="textsLearning()">Language acquisition through texts</span>
+                    <span @click="imagesLearning()">Language acquisition through images</span>
                 </div>
                 <button @click="closeModal()">Close</button>
             </div>
         </div>
         <div class="container">
+            <div class="card" v-if="textsLearningState">
+                <p>{{ learningTexts }}</p>
+                <hr>
+                <button class="buttonForTexts">Next</button>
+            </div>
             <div class="card" v-if="imagesLearningState">
                 <h1>Image goes here...</h1>
                 <p>Choose the word that relate with the image or picture above</p>
@@ -143,6 +173,23 @@ hr {
 
         p {
             margin-top: 15px;
+        }
+
+        .buttonForTexts {
+            font-family: "Poppins", sans-serif;
+            margin-top: 10px;
+            width: 100%;
+            padding: 5px;
+            border: none;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            transition: ease-in-out 0.75s;
+            background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+
+            &:hover {
+                transform: scale(1.025)
+            }
         }
 
         .choice {
