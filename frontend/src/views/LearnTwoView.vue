@@ -116,6 +116,10 @@ async function advancedLearning(word) {
     }
 }
 
+const showMore = (() => {
+    console.log("Clicked")
+})
+
 </script>
 
 <template>
@@ -157,6 +161,9 @@ async function advancedLearning(word) {
                     <p>Level : {{ word.level }}</p>
                 </div>
             </div>
+            <div class="show-more" v-if="learnedWords.length > 0">
+                <button @click="showMore()">Show More</button>
+            </div>
         </div>
     </main>
 </template>
@@ -181,7 +188,7 @@ hr {
     display: flex;
     flex-direction: column;
     transition: ease-in-out 0.5s;
-    overflow-x: hidden;
+    // overflow-x: hidden;
 
     .relearn-card {
         max-width: 100%;
@@ -255,6 +262,7 @@ hr {
             transition: ease-in-out 0.5s;
             backdrop-filter: blur(10px);
             cursor: pointer;
+            animation: moveUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 
             &:hover {
                 transform: scale(1.020);
@@ -291,6 +299,50 @@ hr {
             margin-left: auto;
             margin-right: auto;
         }
+    }
+
+    .show-more {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+
+        button {
+            font-family: "Poppins", sans-serif;
+            background-color: red;
+            padding: 7px;
+            border: none;
+            border-radius: 15px;
+            width: 300px;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            transition: ease-in-out 0.25s;
+            background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+
+            &:hover {
+            transform: scale(1.1)
+        }
+        }
+    }
+}
+
+@keyframes moveUp {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        border-radius: 15px;
+    }
+
+    90% {
+        border-radius: 15px;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
     }
 }
 </style>
