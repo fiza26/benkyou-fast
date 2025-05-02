@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 import axios from 'axios'
 
 const modalState = ref(true)
@@ -23,9 +23,13 @@ const closeModal = (() => {
 
 
 const learningTexts = ref('')
+const countWord = ref(0)
+
 const advancedTexts = async () => {
     try {
-        const response = await axios.post(`http://localhost:3000/gemini`)
+        const response = await axios.post(`http://localhost:3000/gemini`, {
+            countWord: countWord.value
+        })
         console.log('Response:', response.data.result)
         learningTexts.value = response.data.result
     } catch (error) {
@@ -33,7 +37,25 @@ const advancedTexts = async () => {
     }
 }
 
-advancedTexts()
+watchEffect(() => {
+  if (countWord.value === 0) {
+    advancedTexts()
+  }
+})
+
+const nextWord = async () => {
+    try {
+        countWord.value++
+        console.log('Count Word:', countWord.value)
+        const response = await axios.post(`http://localhost:3000/gemini`, {
+            countWord: countWord.value
+        })
+        console.log('Response:', response.data.result)
+        learningTexts.value = response.data.result
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 
 </script>
@@ -54,7 +76,7 @@ advancedTexts()
             <div class="card" v-if="textsLearningState">
                 <p>{{ learningTexts }}</p>
                 <hr>
-                <button class="buttonForTexts">Next</button>
+                <button class="buttonForTexts" @click="nextWord()">Next</button>
             </div>
             <div class="card" v-if="imagesLearningState">
                 <h1>Image goes here...</h1>

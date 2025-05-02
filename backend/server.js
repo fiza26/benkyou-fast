@@ -31,38 +31,24 @@ app.post('/', async (req, res) => {
     res.send('Home route accessed')
 })
 
-let data = ''
-
-// async function gemini() {
-//     try {
-//         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
-
-//         const prompt = `Make a simple sentence with the word ${words[0].word}`
-
-//         const result = await model.generateContent(prompt)
-
-//         console.log('Gemini full response:', JSON.stringify(result, null, 2))
-
-//         data = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text
-
-//         console.log('Generated sentence:', data)
-//     } catch (error) {
-//         console.log('Error:', error)
-//     }
-// }
-
-app.post('/gemini', async(req, res) => {
+app.post('/gemini', async (req, res) => {
     try {
+        const { countWord } = req.body
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
-        const prompt = `Make a simple sentence with the word ${words[0].word}`
-        const result = await model.generateContent(prompt)
 
-        data = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text
+        // Check if the countWord index is valid
+        if (!words[countWord]) {
+            return res.status(400).json({ error: 'Invalid word index' })
+        }
+
+        const prompt = `Make a simple sentence with the word ${words[countWord].word}`
+        const result = await model.generateContent(prompt)
+        const data = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text
 
         res.json({ result: data })
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ error: 'Something went wrong' })
+        console.error(error)
+        res.status(500).json({ error: 'Something went wrong!', error2: error.response?.data || error.message })
     }
 })
 
@@ -77,8 +63,6 @@ async function startServer() {
         console.log('Advanced Learning Words :', words)
         console.log('First word :', words[0])
     }
-
-    // await gemini()
 
     app.listen(port, () => console.log('Listening on port 3000'))
 }
