@@ -21,14 +21,13 @@ const closeModal = (() => {
     history.back()
 })
 
-
 const learningTexts = ref('')
-const countWord = ref(0)
+const countWord = ref(2)
 
 const advancedTexts = async () => {
     try {
         const response = await axios.post(`http://localhost:3000/gemini`, {
-            countWord: countWord.value
+            countWord: Number(countWord.value)
         })
         console.log('Response:', response.data.result)
         learningTexts.value = response.data.result
@@ -38,7 +37,7 @@ const advancedTexts = async () => {
 }
 
 watchEffect(() => {
-  if (countWord.value === 0) {
+  if (countWord.value === 2) {
     advancedTexts()
   }
 })
@@ -56,8 +55,6 @@ const nextWord = async () => {
         console.log(error)
     }
 }
-
-
 </script>
 
 <template>
@@ -153,13 +150,11 @@ hr {
                 cursor: pointer;
                 transition: ease-in-out 0.5s;
 
-
                 &:hover {
                     background-color: white;
                     color: black;
                 }
             }
-
         }
 
         button {
@@ -231,7 +226,6 @@ hr {
                 font-size: 50px;
                 transition: ease-in-out 0.5s;
                 background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-
 
                 &:hover {
                     transform: scale(1.020);

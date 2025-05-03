@@ -161,7 +161,7 @@ const showMore = (() => {
                     <p>Level : {{ word.level }}</p>
                 </div>
             </div>
-            <div class="show-more" v-if="learnedWords.length > 0">
+            <div class="show-more" v-if="learnedWords.length > 0 && sortedWords.length < 1 ">
                 <button @click="showMore()">Show More</button>
             </div>
         </div>
@@ -304,7 +304,7 @@ hr {
     .show-more {
         display: flex;
         justify-content: center;
-        margin-top: 20px;
+        margin-top: 50px;
 
         button {
             font-family: "Poppins", sans-serif;
@@ -312,7 +312,7 @@ hr {
             padding: 7px;
             border: none;
             border-radius: 15px;
-            width: 300px;
+            width: 250px;
             color: white;
             text-align: center;
             cursor: pointer;

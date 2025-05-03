@@ -41,7 +41,7 @@ app.post('/gemini', async (req, res) => {
             return res.status(400).json({ error: 'Invalid word index' })
         }
 
-        const prompt = `Make a simple sentence with the word ${words[countWord].word}`
+        const prompt = `Make a simple sentence with the word ${words[Number(countWord)].word}`
         const result = await model.generateContent(prompt)
         const data = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text
 
