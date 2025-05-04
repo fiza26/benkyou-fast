@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watchEffect } from 'vue'
 import axios from 'axios'
+import { Icon } from '@iconify/vue'
 
 const modalState = ref(true)
 
@@ -22,7 +23,7 @@ const closeModal = (() => {
 })
 
 const learningTexts = ref('')
-const countWord = ref(2)
+const countWord = ref(0)
 
 const advancedTexts = async () => {
     try {
@@ -37,7 +38,7 @@ const advancedTexts = async () => {
 }
 
 watchEffect(() => {
-  if (countWord.value === 2) {
+  if (countWord.value === 0) {
     advancedTexts()
   }
 })
@@ -71,6 +72,9 @@ const nextWord = async () => {
         </div>
         <div class="container">
             <div class="card" v-if="textsLearningState">
+            <div v-if="learningTexts === ''" class="loading">
+                <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
+            </div>
                 <p>{{ learningTexts }}</p>
                 <hr>
                 <button class="buttonForTexts" @click="nextWord()">Next</button>
@@ -187,6 +191,11 @@ hr {
         padding: 40px;
         background-color: #ecf0f1;
         box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
+
+        .loading {
+            display: flex;
+            justify-content: center;
+        }
 
         p {
             margin-top: 15px;
