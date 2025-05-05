@@ -116,8 +116,14 @@ async function advancedLearning(word) {
     }
 }
 
+const wordSlice = ref(12)
+
 const showMore = (() => {
-    console.log("Clicked")
+    wordSlice.value = learnedWords.length
+})
+
+const showLess = (() => {
+    wordSlice.value = 12
 })
 
 </script>
@@ -141,7 +147,7 @@ const showMore = (() => {
                 </div>
             </div>
             <div class="card-container">
-                <div class="card" v-for="word in learnedWords" :key="word.id"
+                <div class="card" v-for="word in learnedWords.slice(0, wordSlice)" :key="word.id"
                     v-if="learnedWords.length > 0 && sortedWords.length < 1">
                     <h1>{{ word.word }}</h1>
                     <p>{{ word.meaning }}</p>
@@ -161,8 +167,11 @@ const showMore = (() => {
                     <p>Level : {{ word.level }}</p>
                 </div>
             </div>
-            <div class="show-more" v-if="learnedWords.length > 0 && sortedWords.length < 1 ">
+            <div class="show-more" v-if="learnedWords.length > 0 && sortedWords.length < 1 && wordSlice === 12">
                 <button @click="showMore()">Show More</button>
+            </div>
+            <div class="show-less" v-if="wordSlice !== 12">
+                <button @click="showLess()">Show Less</button>
             </div>
         </div>
     </main>
@@ -302,6 +311,30 @@ hr {
     }
 
     .show-more {
+        display: flex;
+        justify-content: center;
+        margin-top: 50px;
+
+        button {
+            font-family: "Poppins", sans-serif;
+            background-color: red;
+            padding: 7px;
+            border: none;
+            border-radius: 15px;
+            width: 250px;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            transition: ease-in-out 0.25s;
+            background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+
+            &:hover {
+            transform: scale(1.1)
+        }
+        }
+    }
+
+    .show-less {
         display: flex;
         justify-content: center;
         margin-top: 50px;
