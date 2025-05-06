@@ -77,7 +77,7 @@ const nextWord = async () => {
             </div>
                 <p>{{ learningTexts }}</p>
                 <hr>
-                <button class="buttonForTexts" @click="nextWord()">Next</button>
+                <button class="buttonForTexts" @click="nextWord()" v-if="learningTexts">Next</button>
             </div>
             <div class="card" v-if="imagesLearningState">
                 <h1>Image goes here...</h1>
