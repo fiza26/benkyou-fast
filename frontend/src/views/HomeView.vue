@@ -85,7 +85,6 @@ main {
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1;
   display: flex;
-  align-items: center;
   justify-content: center;
   transition: background-color 0.5s ease;
 
@@ -94,12 +93,12 @@ main {
     background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
     color: white;
     padding: 20px;
-    border-radius: 15px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
     width: 70%;
-    height: 100%;
-    margin-top: 50%;
-    margin-right: 7px;
-    margin-left: 7px;
+    height: 50%;
+    position: fixed;
+    bottom: 0;
     text-align: center;
     -webkit-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
     -moz-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
@@ -198,23 +197,23 @@ main {
 }
 
 @keyframes moveUp {
-    0% {
-        transform: scale(0);
-        opacity: 0;
-    }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
 
-    50% {
-        border-radius: 15px;
-    }
+  50% {
+    border-radius: 15px;
+  }
 
-    90% {
-        border-radius: 15px;
-    }
+  90% {
+    border-radius: 15px;
+  }
 
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @media (max-width: 768px) {
