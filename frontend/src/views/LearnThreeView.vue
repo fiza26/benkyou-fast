@@ -38,9 +38,9 @@ const advancedTexts = async () => {
 }
 
 watchEffect(() => {
-  if (countWord.value === 0) {
-    advancedTexts()
-  }
+    if (countWord.value === 0) {
+        advancedTexts()
+    }
 })
 
 const nextWord = async () => {
@@ -72,9 +72,9 @@ const nextWord = async () => {
         </div>
         <div class="container">
             <div class="card" v-if="textsLearningState">
-            <div v-if="learningTexts === ''" class="loading">
-                <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
-            </div>
+                <div v-if="learningTexts === ''" class="loading">
+                    <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
+                </div>
                 <p>{{ learningTexts }}</p>
                 <hr>
                 <button class="buttonForTexts" @click="nextWord()" v-if="learningTexts">Next</button>
@@ -123,17 +123,16 @@ hr {
     transition: background-color 0.5s ease;
 
     .modal-content {
-        transform: scale(0);
         animation: moveUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
         background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
         color: white;
         padding: 20px;
-        border-radius: 15px;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
         width: 70%;
-        height: 100%;
-        margin-top: 50%;
-        margin-right: 7px;
-        margin-left: 7px;
+        // height: 80%;
+        position: fixed;
+        bottom: 0;
         text-align: center;
         -webkit-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
         -moz-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
@@ -242,5 +241,11 @@ hr {
             }
         }
     }
+}
+
+@media (max-width: 768px) {
+  .modal .modal-content {
+    height: 80%;
+  }
 }
 </style>
