@@ -11,6 +11,19 @@ const closeStreakModal = (() => {
   streakModalState.value = false
 })
 
+const userData = ref([])
+
+async function fetchUserData() {
+  const { data, error } = await supabase.from('user').select()
+  if (data) {
+    userData.value = data
+  } else {
+    console.log(error)
+  }
+  console.log('User Data:', userData.value)
+}
+fetchUserData()
+
 </script>
 
 <template>

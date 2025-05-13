@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import axios from 'axios'
 import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
@@ -17,7 +17,7 @@ async function fetchWords() {
     } else {
         console.log(error)
     }
-    console.log(learnedWords.value)
+    console.log('Learned Words:', learnedWords.value)
 }
 fetchWords()
 
@@ -333,5 +333,4 @@ hr {
         opacity: 1;
     }
 }
-
 </style>
