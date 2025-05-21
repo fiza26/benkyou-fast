@@ -46,7 +46,7 @@ async function login() {
 }
 
 async function signUp() {
-    if (!name.value || !username.value || !email.value || !password.value === '') {
+    if (!name.value || !username.value || !email.value || !password.value) {
         window.alert('Field can not bet empty')
         return
     }
@@ -61,6 +61,14 @@ async function signUp() {
             }
         }
     })
+
+    // const { error2 } = await supabase.from('users_data').insert({
+    //     name: name.value,
+    //     email: email.value,
+    //     day_streak: 1
+    // })
+
+
     if (error) {
         console.log('SignUp Error')
         window.alert('SignUp error, try again')
@@ -68,6 +76,20 @@ async function signUp() {
         username.value = ''
         email.value = ''
         password.value = ''
+    } else {
+        await addUser()
+    }
+}
+
+async function addUser() {
+    const { error } = await supabase.from('users_data').insert({
+        name: name.value,
+        email: email.value,
+        day_streak: 1
+    })
+
+    if (error) {
+        console.log('Error while adding user:', error)
     }
 }
 
