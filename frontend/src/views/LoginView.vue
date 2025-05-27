@@ -62,13 +62,6 @@ async function signUp() {
         }
     })
 
-    // const { error2 } = await supabase.from('users_data').insert({
-    //     name: name.value,
-    //     email: email.value,
-    //     day_streak: 1
-    // })
-
-
     if (error) {
         console.log('SignUp Error')
         window.alert('SignUp error, try again')
@@ -77,6 +70,7 @@ async function signUp() {
         email.value = ''
         password.value = ''
     } else {
+        window.alert('Registration completed, check your email to confirm')
         await addUser()
     }
 }
