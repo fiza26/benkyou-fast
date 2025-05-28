@@ -7,9 +7,94 @@ import supabase from '@/supabase'
 
 const streakModalState = ref(true)
 
+const user = ref(null)
+const name = ref(null)
+
+async function init() {
+  await getCurrentUser()
+  await checkLastLogin()
+  await getCurrentStreak()
+}
+init()
+
+async function getCurrentUser() {
+  const { data: { user: currentUser }, error } = await supabase.auth.getUser()
+
+  if (error) {
+    console.error('Error fetching user data', error.message)
+    return
+  }
+
+  user.value = currentUser
+  name.value = user.value.user_metadata.name
+}
+getCurrentUser()
+
+const lastLogin = ref(null)
+
+async function checkLastLogin() {
+  const { data, error } = await supabase.from('users_data').select('last_login').eq('name', name.value).single()
+
+  if (error) {
+    console.error('Error checking last login:', error.message)
+    return
+  }
+
+  lastLogin.value = data.last_login
+  console.log('Last login:', lastLogin.value)
+}
+
+const ifLastLogin = computed(() => {
+  const today = new Date().toDateString()
+  const last = lastLogin.value.toDateString()
+  return today === last
+})
+
+const currentStreak = ref(0)
+
+async function getCurrentStreak() {
+  const { data, error } = await supabase.from('users_data').select('day_streak').eq('name', name.value).single()
+
+  if (error) {
+    console.error('Error fetching streak:', error.message)
+    return
+  }
+
+  console.log('Current Streak:', data.day_streak);
+  currentStreak.value = data.day_streak;
+}
+getCurrentStreak()
+
 const closeStreakModal = (() => {
   streakModalState.value = false
+  updateDayStreak()
+  updateTimestamp()
 })
+
+async function updateDayStreak() {
+  const { data, error } = await supabase
+    .from('users_data')
+    .update({ day_streak: currentStreak.value + 1 })
+    .eq('name', name.value)
+    .select(); // This is necessary if you want data returned
+
+  if (error) {
+    window.alert('Error updating day streak: ' + error.message)
+  } else {
+    window.alert('Day Streak Updated!')
+    console.log('Updated data:', data) // Optional: to verify update
+  }
+}
+
+async function updateTimestamp() {
+  const { data, error } = await supabase.from('users_data').update({ last_login: new Date() }).eq('name', name.value)
+
+  if (error) {
+    window.alert('Error updating timestamp: ' + error.message)
+  } else {
+    window.alert('Timestamp Updated!')
+  }
+}
 
 const userData = ref([])
 
@@ -28,14 +113,16 @@ fetchUserData()
 
 <template>
   <main>
+    <!-- <div v-if="!ifLastLogin"> -->
     <div class="modal" v-if="streakModalState">
       <div class="modal-content">
         <Icon icon="fluent-emoji:fire" width="100" height="100" />
-        <h1>1 day streak</h1>
+        <h1>{{ currentStreak }} day streak</h1>
         <p>Let's continue the journey</p>
         <button @click="closeStreakModal()">Okay</button>
       </div>
     </div>
+    <!-- </div> -->
     <div class="container">
       <div class="profile-container">
         <div class="profile">
