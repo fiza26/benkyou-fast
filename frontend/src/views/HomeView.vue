@@ -10,10 +10,14 @@ const streakModalState = ref(true)
 const user = ref(null)
 const name = ref(null)
 
+const lastLoginLoaded = ref(false)
+
 async function init() {
   await getCurrentUser()
-  await checkLastLogin()
-  await getCurrentStreak()
+  if (name.value) {
+    await checkLastLogin()
+    await getCurrentStreak()
+  }
 }
 init()
 
@@ -31,6 +35,7 @@ async function getCurrentUser() {
 getCurrentUser()
 
 const lastLogin = ref(null)
+const ifLastLogin = ref(false)
 
 async function checkLastLogin() {
   const { data, error } = await supabase.from('users_data').select('last_login').eq('name', name.value).single()
@@ -41,14 +46,15 @@ async function checkLastLogin() {
   }
 
   lastLogin.value = data.last_login
-  console.log('Last login:', lastLogin.value)
-}
+  lastLoginLoaded.value = true
 
-const ifLastLogin = computed(() => {
-  const today = new Date().toDateString()
-  const last = lastLogin.value.toDateString()
-  return today === last
-})
+  const today = new Date().toISOString().split('T')[0]
+  const last = new Date(lastLogin.value).toISOString().split('T')[0]
+  ifLastLogin.value = today === last
+
+  console.log('Last login:', lastLogin.value)
+  console.log('ifLastLogin:', ifLastLogin.value)
+}
 
 const currentStreak = ref(0)
 
@@ -87,12 +93,16 @@ async function updateDayStreak() {
 }
 
 async function updateTimestamp() {
-  const { data, error } = await supabase.from('users_data').update({ last_login: new Date() }).eq('name', name.value)
+  const todayDateOnly = new Date()
+  todayDateOnly.setUTCHours(0, 0, 0, 0)
+
+  const { data, error } = await supabase.from('users_data').update({ last_login: todayDateOnly }).eq('name', name.value)
 
   if (error) {
     window.alert('Error updating timestamp: ' + error.message)
   } else {
     window.alert('Timestamp Updated!')
+    await checkLastLogin()
   }
 }
 
@@ -113,21 +123,21 @@ fetchUserData()
 
 <template>
   <main>
-    <!-- <div v-if="!ifLastLogin"> -->
-    <div class="modal" v-if="streakModalState">
-      <div class="modal-content">
-        <Icon icon="fluent-emoji:fire" width="100" height="100" />
-        <h1>{{ currentStreak }} day streak</h1>
-        <p>Let's continue the journey</p>
-        <button @click="closeStreakModal()">Okay</button>
+    <div v-if="lastLoginLoaded && !ifLastLogin">
+      <div class="modal" v-if="streakModalState">
+        <div class="modal-content">
+          <Icon icon="fluent-emoji:fire" width="100" height="100" />
+          <h1>{{ currentStreak }} day streak</h1>
+          <p>Let's continue the journey</p>
+          <button @click="closeStreakModal()">Okay</button>
+        </div>
       </div>
     </div>
-    <!-- </div> -->
     <div class="container">
       <div class="profile-container">
         <div class="profile">
           <div class="box-number">
-            <span>11</span>
+            <span>{{ currentStreak }}</span>
             <p>Days streak</p>
           </div>
           <div class="box-number">
