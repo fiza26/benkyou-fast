@@ -17,6 +17,7 @@ async function init() {
   if (name.value) {
     await checkLastLogin()
     await getCurrentStreak()
+    await getWordsLearned()
   }
 }
 init()
@@ -87,7 +88,7 @@ async function updateDayStreak() {
   if (error) {
     window.alert('Error updating day streak: ' + error.message)
   } else {
-    window.alert('Day Streak Updated!')
+    // window.alert('Day Streak Updated!')
     console.log('Updated data:', data) // Optional: to verify update
   }
 }
@@ -101,9 +102,23 @@ async function updateTimestamp() {
   if (error) {
     window.alert('Error updating timestamp: ' + error.message)
   } else {
-    window.alert('Timestamp Updated!')
+    // window.alert('Timestamp Updated!')
     await checkLastLogin()
   }
+}
+
+const wordsLearned = ref(0)
+
+async function getWordsLearned() {
+  const { data, error } = await supabase.from('users_data').select().eq('name', name.value)
+
+  if (error) {
+    console.error('Error fetching total words learned:', error.message)
+    return
+  }
+
+  wordsLearned.value = data[0].words_learned
+  console.log('Total Words Learned:', data[0].words_learned)
 }
 
 const userData = ref([])
@@ -141,7 +156,7 @@ fetchUserData()
             <p>Days streak</p>
           </div>
           <div class="box-number">
-            <span>30</span>
+            <span>{{ wordsLearned }}</span>
             <p>Words learned</p>
           </div>
           <div class="box-number">
