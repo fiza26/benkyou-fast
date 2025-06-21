@@ -4,6 +4,7 @@ import LearnView from '../views/LearnView.vue'
 import LearnTwoView from '../views/LearnTwoView.vue'
 import LearnThreeView from '../views/LearnThreeView.vue'
 import LoginView from '../views/LoginView.vue'
+import LeaderboardView from '../views/LeaderboardView.vue'
 import supabase from '@/supabase'
 
 let localUser
@@ -47,6 +48,12 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView 
+    },
+    {
+      path: '/leaderboard',
+      name: 'leaderboard',
+      component: LeaderboardView,
+      meta: { requiresAuth: true }      
     }
   ]
 })

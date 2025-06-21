@@ -9,7 +9,7 @@ const route = useRoute()
 async function logout() {
   try {
     const { error } = await supabase.auth.signOut()
-    if (!error) { 
+    if (!error) {
       router.push({ name: 'login' })
     } else {
       console.error('Logout error', error)
@@ -24,15 +24,22 @@ async function logout() {
   <header>
     <nav>
       <div class="home">
-      <RouterLink :to="'/'" v-if="route.name != 'login'"><span>
-        <Icon icon="mdi:home" style="font-size: 25px; vertical-align: middle;" color="black" />
-          <!-- Home -->
-        </span></RouterLink>
+        <RouterLink :to="'/'" v-if="route.name != 'login'"><span>
+            <Icon icon="mdi:home" style="font-size: 25px; vertical-align: middle;" color="black" />
+            <!-- Home -->
+          </span></RouterLink>
       </div>
       <div class="nav-link">
-        <span v-if="route.name != 'login'"><Icon icon="iconoir:leaderboard-star"  style="font-size: 25px; margin-right: 6px; color: black" /> Leaderboard</span>
-        <span v-if="route.name != 'login'"><Icon icon="grommet-icons:scorecard"  style="font-size: 19px; margin-right: 6px; color: black" /> 3500 Points</span>
-        <span @click='logout()' v-if="route.name != 'login'"><Icon icon="solar:logout-broken" width="24" height="24" /> Logout</span>
+        <RouterLink :to="'/leaderboard'"><span v-if="route.name != 'login'">
+            <Icon icon="iconoir:leaderboard-star" style="font-size: 25px; margin-right: 6px; color: black" />
+            Leaderboard
+          </span></RouterLink>
+        <span v-if="route.name != 'login'">
+          <Icon icon="grommet-icons:scorecard" style="font-size: 19px; margin-right: 6px; color: black" /> 3500 Points
+        </span>
+        <span @click='logout()' v-if="route.name != 'login'">
+          <Icon icon="solar:logout-broken" width="24" height="24" /> Logout
+        </span>
       </div>
       <div class="mobile-nav-link">
         <Icon icon="arcticons:hamburger-menu" width="30" height="30" />
@@ -104,6 +111,7 @@ nav .mobile-nav-link {
   nav .nav-link {
     display: none;
   }
+
   nav .mobile-nav-link {
     display: block;
     margin-right: 80px;

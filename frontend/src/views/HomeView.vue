@@ -88,7 +88,6 @@ async function updateDayStreak() {
   if (error) {
     window.alert('Error updating day streak: ' + error.message)
   } else {
-    // window.alert('Day Streak Updated!')
     console.log('Updated data:', data) // Optional: to verify update
   }
 }
@@ -102,7 +101,6 @@ async function updateTimestamp() {
   if (error) {
     window.alert('Error updating timestamp: ' + error.message)
   } else {
-    // window.alert('Timestamp Updated!')
     await checkLastLogin()
   }
 }

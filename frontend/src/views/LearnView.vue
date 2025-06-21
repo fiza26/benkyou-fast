@@ -8,6 +8,28 @@ import supabase from '@/supabase'
 
 const router = useRouter()
 
+const user = ref(null)
+const name = ref(null)
+
+async function init() {
+    await getCurrentUser()
+    await getWordsLearned()
+    await getPoints()
+}
+init()
+
+async function getCurrentUser() {
+    const { data: { user: currentUser }, error } = await supabase.auth.getUser()
+
+    if (error) {
+        console.error('Error fetching user data', error.message)
+        return
+    }
+
+    user.value = currentUser
+    name.value = user.value.user_metadata.name
+}
+
 const learnedWords = ref([''])
 
 async function fetchWords() {
@@ -45,9 +67,12 @@ getVocab()
 const currentWord = ref(0)
 const message = ref('')
 
-const nextWord = (word) => {
+const nextWord = async (word) => {
+    await saveWord(word)
+    await updateWordsLearned()
+    await updatePoints()
+
     if (currentWord.value < vocabulary.value.length - 1) {
-        vocabulary.value[currentWord.value]
         currentWord.value++
         confetti()
     } else if (wordLevel.value === 5) {
@@ -56,9 +81,8 @@ const nextWord = (word) => {
     } else {
         wordLevel.value++
         currentWord.value = 0
-        getVocab()
+        await getVocab()
     }
-    saveWord(word)
 }
 
 async function saveWord(word) {
@@ -73,6 +97,83 @@ async function saveWord(word) {
     if (error) {
         console.log(error)
         window.alert('Insert error')
+    }
+}
+
+const totalWordslearned = ref(0)
+
+async function getWordsLearned() {
+    const { data, error } = await supabase.from('users_data').select().eq('name', name.value)
+
+    if (error) {
+        console.error('Error fetching total words learned:', error.message)
+        return
+    }
+
+    totalWordslearned.value = data[0].words_learned
+}
+
+async function updateWordsLearned() {
+    // Get the most recent value first
+    const { data, error: selectError } = await supabase
+        .from('users_data')
+        .select('words_learned')
+        .eq('name', name.value)
+        .single()
+
+    if (selectError) {
+        console.error('Fetch error in updateWordsLearned:', selectError.message)
+        return
+    }
+
+    const newCount = data.words_learned + 1
+
+    const { error: updateError } = await supabase
+        .from('users_data')
+        .update({ words_learned: newCount })
+        .eq('name', name.value)
+
+    if (updateError) {
+        console.error('Update error in updateWordsLearned:', updateError.message)
+    }
+}
+
+const totalPoints = ref(null)
+
+async function getPoints() {
+    const { data, error } = await supabase.from('users_data').select().eq('name', name.value)
+
+    if (error) {
+        console.error('Error fetching total points:', error.message)
+        return
+    }
+
+    totalPoints.value = data[0].points
+}
+
+async function updatePoints() {
+    // Get the most recent points value from DB
+    const { data, error: selectError } = await supabase
+        .from('users_data')
+        .select('points')
+        .eq('name', name.value)
+        .single()
+
+    if (selectError) {
+        console.error('Fetch error in updatePoints:', selectError.message)
+        return
+    }
+
+    const newPoints = data.points + 5
+
+    const { error: updateError } = await supabase
+        .from('users_data')
+        .update({ points: newPoints })
+        .eq('name', name.value)
+
+    if (updateError) {
+        console.error('Update error in updatePoints:', updateError.message)
+        window.alert('Update point error')
     }
 }
 
@@ -237,7 +338,6 @@ hr {
         align-items: center;
         color: white;
         animation: moveUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-
 
         img {
             width: 400px;
