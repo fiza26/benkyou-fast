@@ -18,6 +18,7 @@ async function init() {
     await checkLastLogin()
     await getCurrentStreak()
     await getWordsLearned()
+    await checkLeaderboardRanking()
   }
 }
 init()
@@ -132,6 +133,29 @@ async function fetchUserData() {
 }
 fetchUserData()
 
+const usersData = ref([])
+const leaderboardRanking = ref(null)
+
+async function checkLeaderboardRanking() {
+  const { data, error } = await supabase.from('users_data').select('name, words_learned, points').order('points', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching users data:', error.message)
+    return
+  }
+
+  usersData.value = data
+
+  const index = usersData.value.findIndex(user => user.name === name.value)
+
+  if (index !== -1) {
+    leaderboardRanking.value = index + 1
+  } else {
+    leaderboardRanking.value = null
+  }
+
+}
+
 </script>
 
 <template>
@@ -158,7 +182,7 @@ fetchUserData()
             <p>Words learned</p>
           </div>
           <div class="box-number">
-            <span>#5</span>
+            <span>{{ leaderboardRanking }}</span>
             <p>On leaderboard</p>
           </div>
         </div>
