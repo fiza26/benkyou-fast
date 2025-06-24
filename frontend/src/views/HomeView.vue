@@ -4,43 +4,29 @@ import { RouterLink, RouterView } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import router from '@/router'
 import supabase from '@/supabase'
+import { useUserStore } from '@/stores/userStore'
+
+const userStore = useUserStore()
 
 const streakModalState = ref(true)
 
-const user = ref(null)
-const name = ref(null)
-
 const lastLoginLoaded = ref(false)
 
-async function init() {
-  await getCurrentUser()
-  if (name.value) {
+onMounted(async () => {
+  await userStore.getCurrentUser()
+  if (userStore.name) {
     await checkLastLogin()
     await getCurrentStreak()
     await getWordsLearned()
     await checkLeaderboardRanking()
   }
-}
-init()
-
-async function getCurrentUser() {
-  const { data: { user: currentUser }, error } = await supabase.auth.getUser()
-
-  if (error) {
-    console.error('Error fetching user data', error.message)
-    return
-  }
-
-  user.value = currentUser
-  name.value = user.value.user_metadata.name
-}
-getCurrentUser()
+})
 
 const lastLogin = ref(null)
 const ifLastLogin = ref(false)
 
 async function checkLastLogin() {
-  const { data, error } = await supabase.from('users_data').select('last_login').eq('name', name.value).single()
+  const { data, error } = await supabase.from('users_data').select('last_login').eq('name', userStore.name).single()
 
   if (error) {
     console.error('Error checking last login:', error.message)
@@ -61,7 +47,7 @@ async function checkLastLogin() {
 const currentStreak = ref(0)
 
 async function getCurrentStreak() {
-  const { data, error } = await supabase.from('users_data').select('day_streak').eq('name', name.value).single()
+  const { data, error } = await supabase.from('users_data').select('day_streak').eq('name', userStore.name).single()
 
   if (error) {
     console.error('Error fetching streak:', error.message)
@@ -83,7 +69,7 @@ async function updateDayStreak() {
   const { data, error } = await supabase
     .from('users_data')
     .update({ day_streak: currentStreak.value + 1 })
-    .eq('name', name.value)
+    .eq('name', userStore.name.value)
     .select(); // This is necessary if you want data returned
 
   if (error) {
@@ -97,7 +83,7 @@ async function updateTimestamp() {
   const todayDateOnly = new Date()
   todayDateOnly.setUTCHours(0, 0, 0, 0)
 
-  const { data, error } = await supabase.from('users_data').update({ last_login: todayDateOnly }).eq('name', name.value)
+  const { data, error } = await supabase.from('users_data').update({ last_login: todayDateOnly }).eq('name', userStore.name)
 
   if (error) {
     window.alert('Error updating timestamp: ' + error.message)
@@ -109,7 +95,7 @@ async function updateTimestamp() {
 const wordsLearned = ref(0)
 
 async function getWordsLearned() {
-  const { data, error } = await supabase.from('users_data').select().eq('name', name.value)
+  const { data, error } = await supabase.from('users_data').select().eq('name', userStore.name)
 
   if (error) {
     console.error('Error fetching total words learned:', error.message)
@@ -146,7 +132,7 @@ async function checkLeaderboardRanking() {
 
   usersData.value = data
 
-  const index = usersData.value.findIndex(user => user.name === name.value)
+  const index = usersData.value.findIndex(user => user.name === userStore.name)
 
   if (index !== -1) {
     leaderboardRanking.value = index + 1

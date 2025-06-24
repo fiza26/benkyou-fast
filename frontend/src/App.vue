@@ -72,7 +72,6 @@ a {
 nav {
   display: flex;
   align-items: center;
-  // justify-content: space-around;
   justify-content: space-between;
   height: 60px;
   width: 100%;

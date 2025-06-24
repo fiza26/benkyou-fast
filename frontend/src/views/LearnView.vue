@@ -5,30 +5,19 @@ import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
 import confetti from 'canvas-confetti'
 import supabase from '@/supabase'
+import { useUserStore } from '@/stores/userStore'
+
+const userStore = useUserStore()
 
 const router = useRouter()
 
-const user = ref(null)
-const name = ref(null)
-
-async function init() {
-    await getCurrentUser()
-    await getWordsLearned()
-    await getPoints()
-}
-init()
-
-async function getCurrentUser() {
-    const { data: { user: currentUser }, error } = await supabase.auth.getUser()
-
-    if (error) {
-        console.error('Error fetching user data', error.message)
-        return
+onMounted(async () => {
+    await userStore.getCurrentUser()
+    if (userStore.name) {
+        await getWordsLearned()
+        await getPoints()
     }
-
-    user.value = currentUser
-    name.value = user.value.user_metadata.name
-}
+})
 
 const learnedWords = ref([''])
 
@@ -103,7 +92,7 @@ async function saveWord(word) {
 const totalWordslearned = ref(0)
 
 async function getWordsLearned() {
-    const { data, error } = await supabase.from('users_data').select().eq('name', name.value)
+    const { data, error } = await supabase.from('users_data').select().eq('name', userStore.name)
 
     if (error) {
         console.error('Error fetching total words learned:', error.message)
@@ -118,7 +107,7 @@ async function updateWordsLearned() {
     const { data, error: selectError } = await supabase
         .from('users_data')
         .select('words_learned')
-        .eq('name', name.value)
+        .eq('name', userStore.name)
         .single()
 
     if (selectError) {
@@ -131,7 +120,7 @@ async function updateWordsLearned() {
     const { error: updateError } = await supabase
         .from('users_data')
         .update({ words_learned: newCount })
-        .eq('name', name.value)
+        .eq('name', userStore.name)
 
     if (updateError) {
         console.error('Update error in updateWordsLearned:', updateError.message)
@@ -141,7 +130,7 @@ async function updateWordsLearned() {
 const totalPoints = ref(null)
 
 async function getPoints() {
-    const { data, error } = await supabase.from('users_data').select().eq('name', name.value)
+    const { data, error } = await supabase.from('users_data').select().eq('name', userStore.name)
 
     if (error) {
         console.error('Error fetching total points:', error.message)
@@ -156,7 +145,7 @@ async function updatePoints() {
     const { data, error: selectError } = await supabase
         .from('users_data')
         .select('points')
-        .eq('name', name.value)
+        .eq('name', userStore.name)
         .single()
 
     if (selectError) {
@@ -169,7 +158,7 @@ async function updatePoints() {
     const { error: updateError } = await supabase
         .from('users_data')
         .update({ points: newPoints })
-        .eq('name', name.value)
+        .eq('name', userStore.name)
 
     if (updateError) {
         console.error('Update error in updatePoints:', updateError.message)
