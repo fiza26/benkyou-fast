@@ -79,7 +79,8 @@ async function addUser() {
     const { error } = await supabase.from('users_data').insert({
         name: name.value,
         email: email.value,
-        day_streak: 1
+        day_streak: 1,
+        username: username.value
     })
 
     if (error) {
