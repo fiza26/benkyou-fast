@@ -75,4 +75,10 @@ getUsersData()
         }
     }
 }
+
+@media (max-width: 768px) {
+    .container .leaderboard {
+        overflow: scroll;
+    }
+}
 </style>

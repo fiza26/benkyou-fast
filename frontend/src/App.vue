@@ -1,10 +1,49 @@
 <script setup>
+import { ref, onMounted, watch } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import router from '@/router'
 import { Icon } from '@iconify/vue'
 import supabase from '@/supabase'
+import { useUserStore } from '@/stores/userStore'
+
+const userStore = useUserStore()
 
 const route = useRoute()
+
+onMounted(async () => {
+  if (userStore.name) {
+    await getPoints()
+  }
+})
+
+watch(
+  () => userStore.name,
+  (newName) => {
+    if (newName) {
+      getPoints()
+    }
+  }
+)
+
+const mobileNavState = ref(false)
+
+const showMobileNav = () => {
+  mobileNavState.value = !mobileNavState.value
+}
+
+const userPoints = ref(null)
+
+async function getPoints() {
+  if (!userStore.name) return 
+  const { data, error } = await supabase.from('users_data').select('points').eq('name', userStore.name).single()
+
+  if (error) {
+    console.error('Error fetching user points', error.message)
+    return
+  }
+
+  userPoints.value = data.points
+}
 
 async function logout() {
   try {
@@ -35,17 +74,26 @@ async function logout() {
             Leaderboard
           </span></RouterLink>
         <span v-if="route.name != 'login'">
-          <Icon icon="grommet-icons:scorecard" style="font-size: 19px; margin-right: 6px; color: black" /> 3500 Points
+          <Icon icon="grommet-icons:scorecard" style="font-size: 19px; margin-right: 6px; color: black" /> {{ userPoints }} Points
         </span>
         <span @click='logout()' v-if="route.name != 'login'">
           <Icon icon="solar:logout-broken" width="24" height="24" /> Logout
         </span>
       </div>
       <div class="mobile-nav-link">
-        <Icon icon="arcticons:hamburger-menu" width="30" height="30" />
-
+        <Icon icon="arcticons:hamburger-menu" width="30" height="30" @click="showMobileNav()" />
       </div>
     </nav>
+    <div class="mobile-sidebar" v-if="mobileNavState">
+      <div class="sidebar-content">
+        <span @click="mobileNavState = false" class="close-btn">✕</span>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/leaderboard">Leaderboard</RouterLink>
+        <span>{{ userPoints }} Points</span>
+        <span @click="logout">Logout</span>
+      </div>
+    </div>
+
   </header>
   <RouterView />
 </template>
@@ -104,6 +152,49 @@ nav .nav-link {
 nav .mobile-nav-link {
   display: none;
   cursor: pointer;
+}
+
+.mobile-sidebar {
+  position: fixed;
+  top: 60px; // below the navbar
+  left: 0;
+  width: 100%;
+  height: calc(100% - 60px); // fill remaining screen
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 2;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.sidebar-content {
+  width: 250px;
+  background-color: #fff;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transform: translateX(-100%);
+  animation: slideIn 0.3s forwards;
+}
+
+.sidebar-content a,
+.sidebar-content span {
+  font-size: 18px;
+  color: black;
+  cursor: pointer;
+}
+
+.close-btn {
+  align-self: flex-end;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+@keyframes slideIn {
+  to {
+    transform: translateX(0);
+  }
 }
 
 @media (max-width: 768px) {

@@ -18,5 +18,5 @@ export const useUserStore = defineStore('user', () => {
         name.value = user.value.user_metadata.name
     }
 
-    return {user, name, getCurrentUser}
+    return { user, name, getCurrentUser }
 })

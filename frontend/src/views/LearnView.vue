@@ -13,13 +13,15 @@ const router = useRouter()
 
 onMounted(async () => {
     await userStore.getCurrentUser()
+
     if (userStore.name) {
         await getWordsLearned()
-        await getPoints()
+        await fetchWords()      // <- wait until learnedWords are loaded
+        await getVocab()        // <- now this will filter correctly
     }
 })
 
-const learnedWords = ref([''])
+const learnedWords = ref([])
 
 async function fetchWords() {
     const { data, error } = await supabase.from('words').select()
@@ -30,7 +32,6 @@ async function fetchWords() {
     }
     console.log('Learned Words:', learnedWords.value)
 }
-fetchWords()
 
 const vocabulary = ref([])
 const wordLevel = ref(1)
@@ -51,7 +52,6 @@ const getVocab = async () => {
         console.log('Error loading vocabulary:', error)
     }
 }
-getVocab()
 
 const currentWord = ref(0)
 const message = ref('')
@@ -125,19 +125,6 @@ async function updateWordsLearned() {
     if (updateError) {
         console.error('Update error in updateWordsLearned:', updateError.message)
     }
-}
-
-const totalPoints = ref(null)
-
-async function getPoints() {
-    const { data, error } = await supabase.from('users_data').select().eq('name', userStore.name)
-
-    if (error) {
-        console.error('Error fetching total points:', error.message)
-        return
-    }
-
-    totalPoints.value = data[0].points
 }
 
 async function updatePoints() {

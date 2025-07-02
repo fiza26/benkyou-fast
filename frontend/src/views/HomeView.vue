@@ -139,7 +139,6 @@ async function checkLeaderboardRanking() {
   } else {
     leaderboardRanking.value = null
   }
-
 }
 
 </script>
