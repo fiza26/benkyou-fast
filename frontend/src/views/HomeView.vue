@@ -22,8 +22,21 @@ onMounted(async () => {
   }
 })
 
+function getDateDiffInDays(date1, date2) {
+  const d1 = new Date(date1)
+  const d2 = new Date(date2)
+
+  d1.setUTCHours(0, 0, 0, 0)
+  d2.setUTCHours(0, 0, 0, 0)
+
+  const diffTime = d2 - d1
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24))
+}
+
 const lastLogin = ref(null)
 const ifLastLogin = ref(false)
+
+const daysDifference = ref(0)
 
 async function checkLastLogin() {
   const { data, error } = await supabase.from('users_data').select('last_login').eq('name', userStore.name).single()
@@ -39,6 +52,8 @@ async function checkLastLogin() {
   const today = new Date().toISOString().split('T')[0]
   const last = new Date(lastLogin.value).toISOString().split('T')[0]
   ifLastLogin.value = today === last
+
+  daysDifference.value = getDateDiffInDays(lastLogin.value, new Date())
 
   console.log('Last login:', lastLogin.value)
   console.log('ifLastLogin:', ifLastLogin.value)
@@ -66,16 +81,27 @@ const closeStreakModal = (() => {
 })
 
 async function updateDayStreak() {
+  let newStreak = 1
+
+  if (daysDifference.value === 1) {
+    newStreak = currentStreak.value + 1
+  } else if (daysDifference.value === 0) {
+    newStreak = currentStreak.value // same day login, no change
+  } else {
+    newStreak = 1 // missed day(s), reset streak
+  }
+
   const { data, error } = await supabase
     .from('users_data')
-    .update({ day_streak: currentStreak.value + 1 })
+    .update({ day_streak: newStreak })
     .eq('name', userStore.name.value)
-    .select(); // This is necessary if you want data returned
+    .select()
 
   if (error) {
     window.alert('Error updating day streak: ' + error.message)
   } else {
-    console.log('Updated data:', data) // Optional: to verify update
+    currentStreak.value = newStreak
+    console.log('Updated streak to:', newStreak)
   }
 }
 
