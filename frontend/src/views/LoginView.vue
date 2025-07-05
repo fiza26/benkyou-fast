@@ -45,9 +45,30 @@ async function login() {
     }
 }
 
+async function checkIfUsernameExist() {
+    const { data, error } = await supabase.from('users_data').select('username').eq('username', username.value).single()
+
+    if (error) {
+        console.error('Error fetching username', error.message)
+        return false
+    }
+
+    if (data) {
+        window.alert('Username already exist, try another username')
+        return false
+    }
+
+    return true
+}
+
 async function signUp() {
     if (!name.value || !username.value || !email.value || !password.value) {
         window.alert('Field can not bet empty')
+        return
+    }
+
+    const usernameAvailable = await checkIfUsernameExist()
+    if (!usernameAvailable) {
         return
     }
 
@@ -119,7 +140,7 @@ const loginState = (() => {
                     <input type="text" placeholder="Enter your email" v-model="email" required>
                     <label for="">Password</label><br><br>
                     <input type="password" placeholder="Enter your password" v-model="password" required>
-                    <button type="submit" @click="signUp()">Login</button>
+                    <button type="submit" @click="signUp()">Sign Up</button>
                     <p class="login-text">Already have an account? <span @click="loginState()">login</span></p>
                 </div>
             </div>
