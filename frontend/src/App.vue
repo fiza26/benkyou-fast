@@ -80,11 +80,11 @@ async function logout() {
           <Icon icon="solar:logout-broken" width="24" height="24" /> Logout
         </span>
       </div>
-      <div class="mobile-nav-link">
+      <div class="mobile-nav-link" v-if="route.name != 'login'">
         <Icon icon="arcticons:hamburger-menu" width="30" height="30" @click="showMobileNav()" />
       </div>
     </nav>
-    <div class="mobile-sidebar" v-if="mobileNavState">
+    <div class="mobile-sidebar" v-if="mobileNavState && route.name != 'login'">
       <div class="sidebar-content">
         <span @click="mobileNavState = false" class="close-btn">✕</span>
         <RouterLink to="/">Home</RouterLink>
