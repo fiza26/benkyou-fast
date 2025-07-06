@@ -26,8 +26,8 @@ function getDateDiffInDays(date1, date2) {
   const d1 = new Date(date1)
   const d2 = new Date(date2)
 
-  d1.setUTCHours(0, 0, 0, 0)
-  d2.setUTCHours(0, 0, 0, 0)
+  d1.setHours(0, 0, 0, 0)
+  d2.setHours(0, 0, 0, 0)
 
   const diffTime = d2 - d1
   return Math.floor(diffTime / (1000 * 60 * 60 * 24))
@@ -39,7 +39,11 @@ const ifLastLogin = ref(false)
 const daysDifference = ref(0)
 
 async function checkLastLogin() {
-  const { data, error } = await supabase.from('users_data').select('last_login').eq('name', userStore.name).single()
+  const { data, error } = await supabase
+    .from('users_data')
+    .select('last_login')
+    .eq('name', userStore.name)
+    .single()
 
   if (error) {
     console.error('Error checking last login:', error.message)
@@ -49,14 +53,25 @@ async function checkLastLogin() {
   lastLogin.value = data.last_login
   lastLoginLoaded.value = true
 
-  const today = new Date().toISOString().split('T')[0]
-  const last = new Date(lastLogin.value).toISOString().split('T')[0]
-  ifLastLogin.value = today === last
+  const today = new Date()
+  const last = new Date(lastLogin.value)
 
-  daysDifference.value = getDateDiffInDays(lastLogin.value, new Date())
+  // Convert to local date strings (ignore time)
+  const todayStr = today.toISOString().split('T')[0]
+  const lastStr = last.toISOString().split('T')[0]
+
+  ifLastLogin.value = todayStr === lastStr
+  daysDifference.value = getDateDiffInDays(last, today)
 
   console.log('Last login:', lastLogin.value)
   console.log('ifLastLogin:', ifLastLogin.value)
+
+  // Only update if it's a new day
+  if (!ifLastLogin.value) {
+    await updateDayStreak()
+    await updateTimestamp()
+    await getCurrentStreak()
+  }
 }
 
 const currentStreak = ref(0)
@@ -72,12 +87,9 @@ async function getCurrentStreak() {
   console.log('Current Streak:', data.day_streak);
   currentStreak.value = data.day_streak;
 }
-getCurrentStreak()
 
 const closeStreakModal = (() => {
   streakModalState.value = false
-  updateDayStreak()
-  updateTimestamp()
 })
 
 async function updateDayStreak() {
