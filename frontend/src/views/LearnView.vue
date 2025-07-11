@@ -59,6 +59,7 @@ const message = ref('')
 const nextWord = async (word) => {
     await saveWord(word)
     await updateWordsLearned()
+    await getWordsLearned() 
     await updatePoints()
 
     if (currentWord.value < vocabulary.value.length - 1) {
@@ -231,7 +232,6 @@ const achievementOkay = () => {
                     <p>{{ vocabulary[currentWord].meaning }}</p>
                     <p>{{ vocabulary[currentWord].furigana }}</p>
                     <p>{{ vocabulary[currentWord].romaji }}</p>
-                    <!-- <p>{{ vocabulary[currentWord].level }}</p> -->
                     <p v-if="message">{{ message }}</p>
                     <div class="button-action">
                         <button @click="nextWord(vocabulary[currentWord])">Next ></button>

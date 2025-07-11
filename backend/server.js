@@ -27,21 +27,28 @@ async function getWords() {
     }
 }
 
-app.post('/', async (req, res) => {
+app.get('/', (req, res) => {
     res.send('Home route accessed')
 })
 
 app.post('/gemini', async (req, res) => {
     try {
         const { countWord } = req.body
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' })
 
-        // Check if the countWord index is valid
-        if (!words[countWord]) {
+        const { data: freshWords, error: dbError } = await supabase.from('advanced_learning').select()
+
+        if (dbError) {
+            return res.status(500).json({ error: 'Database fetch failed', details: dbError.message })
+        }
+
+        if (!freshWords[countWord]) {
             return res.status(400).json({ error: 'Invalid word index' })
         }
 
-        const prompt = `Make a simple sentence with the word ${words[Number(countWord)].word}, remember it's japanese language`
+        const prompt = `Make a simple sentence with the word ${freshWords[Number(countWord)].word}, remember it's japanese language`
+
+
         const result = await model.generateContent(prompt)
         const data = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text
 
@@ -109,19 +116,19 @@ async function generateImage() {
         if (response && response.generatedImages && response.generatedImages.length > 0) {
             const base64Image = response.generatedImages[0].data; // Adjust based on actual response structure
             const mimeType = response.generatedImages[0].mimeType || 'image/png'; // Or get from response
-      
+
             const imageUrl = `data:${mimeType};base64,${base64Image}`;
             console.log("Generated Image URL:", imageUrl);
-      
+
             if (typeof document !== 'undefined') {
-              const imgElement = document.createElement('img');
-              imgElement.src = imageUrl;
-              document.body.appendChild(imgElement);
+                const imgElement = document.createElement('img');
+                imgElement.src = imageUrl;
+                document.body.appendChild(imgElement);
             }
-          } else {
+        } else {
             console.log("No image data found in the response.");
             console.log("Full Response:", response); // Log the full response to inspect its structure
-          }
+        }
     } catch (error) {
         console.error(error)
         // res.status(500).json({ error: 'Something went wrong!' })

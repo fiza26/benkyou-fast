@@ -68,7 +68,7 @@ const relearnWords = () => {
 const loadingTimeout = (() => {
     setTimeout(() => {
         sortedWordsLoading.value = false
-    }, '1000')
+    }, 1000)
 })
 
 const words = ref([])
@@ -119,7 +119,7 @@ async function advancedLearning(word) {
 const wordSlice = ref(12)
 
 const showMore = (() => {
-    wordSlice.value = learnedWords.length
+    wordSlice.value = learnedWords.value.length
 })
 
 const showLess = (() => {
@@ -167,7 +167,7 @@ const showLess = (() => {
                     <p>Level : {{ word.level }}</p>
                 </div>
             </div>
-            <div class="show-more" v-if="learnedWords.length > 0 && sortedWords.length < 1 && wordSlice === 12">
+            <div class="show-more" v-if="learnedWords.length > 12 && sortedWords.length < 1 && wordSlice === 12">
                 <button @click="showMore()">Show More</button>
             </div>
             <div class="show-less" v-if="wordSlice !== 12">

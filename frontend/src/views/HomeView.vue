@@ -1,8 +1,7 @@
 <script setup>
-import { ref, computed, watchEffect, onMounted } from 'vue'
-import { RouterLink, RouterView } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import router from '@/router'
 import supabase from '@/supabase'
 import { useUserStore } from '@/stores/userStore'
 
@@ -15,8 +14,8 @@ const lastLoginLoaded = ref(false)
 onMounted(async () => {
   await userStore.getCurrentUser()
   if (userStore.name) {
-    await checkLastLogin()
     await getCurrentStreak()
+    await checkLastLogin()
     await getWordsLearned()
     await checkLeaderboardRanking()
   }
@@ -70,7 +69,7 @@ async function checkLastLogin() {
   if (!ifLastLogin.value) {
     await updateDayStreak()
     await updateTimestamp()
-    await getCurrentStreak()
+    streakModalState.value = true
   }
 }
 
@@ -106,7 +105,7 @@ async function updateDayStreak() {
   const { data, error } = await supabase
     .from('users_data')
     .update({ day_streak: newStreak })
-    .eq('name', userStore.name.value)
+    .eq('name', userStore.name)
     .select()
 
   if (error) {
@@ -125,8 +124,6 @@ async function updateTimestamp() {
 
   if (error) {
     window.alert('Error updating timestamp: ' + error.message)
-  } else {
-    await checkLastLogin()
   }
 }
 
@@ -183,14 +180,12 @@ async function checkLeaderboardRanking() {
 
 <template>
   <main>
-    <div v-if="lastLoginLoaded && !ifLastLogin">
-      <div class="modal" v-if="streakModalState">
-        <div class="modal-content">
-          <Icon icon="fluent-emoji:fire" width="100" height="100" />
-          <h1>{{ currentStreak }} day streak</h1>
-          <p>Let's continue the journey</p>
-          <button @click="closeStreakModal()">Okay</button>
-        </div>
+    <div class="modal" v-if="streakModalState">
+      <div class="modal-content">
+        <Icon icon="fluent-emoji:fire" width="100" height="100" />
+        <h1>{{ currentStreak }} day streak</h1>
+        <p>Let's continue the journey</p>
+        <button @click="closeStreakModal()">Okay</button>
       </div>
     </div>
     <div class="container">
