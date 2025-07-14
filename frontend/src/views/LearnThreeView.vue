@@ -2,6 +2,10 @@
 import { ref, watchEffect } from 'vue'
 import axios from 'axios'
 import { Icon } from '@iconify/vue'
+import supabase from '@/supabase'
+import { useUserStore } from '@/stores/userStore'
+
+const userStore = useUserStore()
 
 const modalState = ref(true)
 
@@ -21,6 +25,18 @@ const imagesLearning = (() => {
 const closeModal = (() => {
     history.back()
 })
+
+const advancedLearningWords = ref(0)
+
+async function getWordsAdvancedLearning() {
+    const { data, error } = await supabase.from('advanced_learning').select().eq('name', userStore.name)
+
+    if (error) {
+        console.error('Error fetching words from advanced learning', error.message)
+    }
+
+    advancedLearningWords.value = data
+}
 
 const learningTexts = ref('')
 const countWord = ref(0)
@@ -65,7 +81,7 @@ const nextWord = async () => {
                 <h1>Choose your way of learning today!</h1><br>
                 <div class="learning-choice">
                     <span @click="textsLearning()">Language acquisition through texts</span>
-                    <span @click="imagesLearning()">Language acquisition through images</span>
+                    <!-- <span @click="imagesLearning()">Language acquisition through images</span> -->
                 </div>
                 <button @click="closeModal()">Close</button>
             </div>
@@ -130,7 +146,6 @@ hr {
         border-top-left-radius: 15px;
         border-top-right-radius: 15px;
         width: 70%;
-        // height: 80%;
         position: fixed;
         bottom: 0;
         text-align: center;

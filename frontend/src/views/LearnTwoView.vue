@@ -2,6 +2,9 @@
 import { ref, computed, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import supabase from '@/supabase'
+import { useUserStore } from '@/stores/userStore'
+
+const userStore = useUserStore()
 
 const learnedWords = ref([])
 
@@ -104,7 +107,9 @@ async function advancedLearning(word) {
         meaning: word.meaning,
         furigana: word.furigana,
         romaji: word.romaji,
-        level: word.level
+        level: word.level,
+        name: userStore.name,
+        username: userStore.username
     })
 
     if (error) {

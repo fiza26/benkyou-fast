@@ -46,98 +46,29 @@ app.post('/gemini', async (req, res) => {
             return res.status(400).json({ error: 'Invalid word index' })
         }
 
-        const prompt = `Make a simple sentence with the word ${freshWords[Number(countWord)].word}, remember it's japanese language`
+        const prompt = `Using the Japanese word "${freshWords[Number(countWord)].word}", generate:
+1. A short and simple Japanese sentence using that word.
+2. The English translation of the sentence.
+Return only the sentence and translation. No explanation or extra text. Format:
+Japanese: ...
+English: ...`
+
 
 
         const result = await model.generateContent(prompt)
-        const data = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text
 
-        res.json({ result: data })
+        const rawText = result?.response?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+        const cleaned = rawText.trim().replace(/\n{2,}/g, '\n')
+        res.json({ result: cleaned })
+
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: 'Something went wrong!', error2: error.response?.data || error.message })
     }
 })
 
-// app.post('/gemini-image', async (req, res) => {
-//     try {
-//         const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-
-//         const prompt = `A photo realistice image of fluffy white cat`
-
-//         const result = await model.generateContent([prompt])
-//         const response = await result.response
-
-//         if (response.candidates && response.candidates.length > 0) {
-//             const imagePart = response.candidates[0].content.parts.find(
-//               (part) => part.inlineData && part.inlineData.mimeType.startsWith("image/")
-//             );
-
-//             if (imagePart) {
-//               const base64Image = imagePart.inlineData.data;
-//               const imageUrl = `data:${imagePart.inlineData.mimeType};base64,${base64Image}`;
-
-//               // You can now display this imageUrl in an <img> tag in your HTML
-//               console.log("Generated Image URL:", imageUrl);
-
-//               // Example of creating an image element in the DOM (for browser environments)
-//               if (typeof document !== 'undefined') {
-//                 const imgElement = document.createElement('img');
-//                 imgElement.src = imageUrl;
-//                 document.body.appendChild(imgElement);
-//               }
-
-//             } else {
-//               console.log("No image data found in the response.");
-//             }
-//           } else {
-//             console.log("No candidates found in the response.");
-//           }
-//         } catch (error) {
-//             console.error(error)
-//             res.status(500).json({ error: 'Something went wrong!' })
-//         }
-//     })
-
-async function generateImage() {
-    try {
-        const model = genAI.getGenerativeModel({ model: 'imagen-3.0-generate-002' })
-
-        const prompt = `A photo realistice image of fluffy white cat`
-
-        // The method for generating images might be different for dedicated models
-        const result = await model.generateContent({
-            prompt: prompt, // Or potentially just passing the string directly
-            // You might have configuration options here, like number of images, quality, etc.
-        });
-
-        const response = result.response
-
-        if (response && response.generatedImages && response.generatedImages.length > 0) {
-            const base64Image = response.generatedImages[0].data; // Adjust based on actual response structure
-            const mimeType = response.generatedImages[0].mimeType || 'image/png'; // Or get from response
-
-            const imageUrl = `data:${mimeType};base64,${base64Image}`;
-            console.log("Generated Image URL:", imageUrl);
-
-            if (typeof document !== 'undefined') {
-                const imgElement = document.createElement('img');
-                imgElement.src = imageUrl;
-                document.body.appendChild(imgElement);
-            }
-        } else {
-            console.log("No image data found in the response.");
-            console.log("Full Response:", response); // Log the full response to inspect its structure
-        }
-    } catch (error) {
-        console.error(error)
-        // res.status(500).json({ error: 'Something went wrong!' })
-    }
-}
-
 async function startServer() {
     await getWords()
-    await generateImage()
 
     // Check if words are populated
     if (words.length === 0) {
