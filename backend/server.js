@@ -47,13 +47,16 @@ app.post('/gemini', async (req, res) => {
         }
 
         const prompt = `Using the Japanese word "${freshWords[Number(countWord)].word}", generate:
-1. A short and simple Japanese sentence using that word.
-2. The English translation of the sentence.
-Return only the sentence and translation. No explanation or extra text. Format:
-Japanese: ...
-English: ...`
-
-
+                        1. A short and simple Japanese sentence using that word.
+                        2. Romaji for the sentence.
+                        3. The English translation of the sentence.
+                        4. A brief explanation that is easy to understand for that sentence.
+                        Return only the sentence and translation. No explanation or extra text. 
+                        Format:
+                        Japanese: ...
+                        Romaji: ...
+                        English: ...
+                        Explanation: ...`
 
         const result = await model.generateContent(prompt)
 

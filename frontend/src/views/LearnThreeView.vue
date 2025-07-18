@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watchEffect } from 'vue'
+import { ref, watchEffect, onMounted } from 'vue'
 import axios from 'axios'
 import { Icon } from '@iconify/vue'
 import supabase from '@/supabase'
@@ -26,7 +26,14 @@ const closeModal = (() => {
     history.back()
 })
 
-const advancedLearningWords = ref(0)
+onMounted(async () => {
+    if (userStore.name) {
+        await getWordsAdvancedLearning()
+    }
+})
+
+const advancedLearningWords = ref([])
+const textIndex = ref(1)
 
 async function getWordsAdvancedLearning() {
     const { data, error } = await supabase.from('advanced_learning').select().eq('name', userStore.name)
@@ -59,17 +66,31 @@ watchEffect(() => {
     }
 })
 
+const loadingState = ref(false)
+
+const doneModalState = ref(false)
+
+const doneModal = () => {
+    doneModalState.value = true
+}
+
 const nextWord = async () => {
     try {
+        loadingState.value = true
         countWord.value++
         console.log('Count Word:', countWord.value)
         const response = await axios.post(`http://localhost:3000/gemini`, {
             countWord: countWord.value
         })
         console.log('Response:', response.data.result)
+        if (response) {
+            textIndex.value++
+        }
         learningTexts.value = response.data.result
     } catch (error) {
         console.log(error)
+    } finally {
+        loadingState.value = false
     }
 }
 </script>
@@ -86,14 +107,32 @@ const nextWord = async () => {
                 <button @click="closeModal()">Close</button>
             </div>
         </div>
+        <div class="modal" v-if="doneModalState">
+            <div class="modal-content">
+                <Icon icon="solar:confetti-outline" style="vertical-align: middle; color: white; font-size: 130px;" />
+                <h3>You have learned all the words in advanced learning! You can learn new words back on homepage or you
+                    can reset it so you can learn again from the start.
+                </h3><br>
+                <button @click="closeModal()">Close</button>
+            </div>
+        </div>
         <div class="container">
             <div class="card" v-if="textsLearningState">
                 <div v-if="learningTexts === ''" class="loading">
                     <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
                 </div>
-                <p>{{ learningTexts }}</p>
+                <h3>{{ textIndex }} / {{ advancedLearningWords.length }}</h3>
+                <div v-if="loadingState" class="loading">
+                    <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
+                </div>
+                <div class="learning-text" v-if="!loadingState">
+                    <div v-for="line in learningTexts.split('\n')" :key="line">{{ line }}</div>
+                </div>
                 <hr>
-                <button class="buttonForTexts" @click="nextWord()" v-if="learningTexts">Next</button>
+                <button class="buttonForTexts" @click="nextWord()"
+                    v-if="learningTexts && textIndex < advancedLearningWords.length">Next</button>
+                <button class="buttonForTexts" @click="doneModal()"
+                    v-if="learningTexts && textIndex === advancedLearningWords.length">Done</button>
             </div>
             <div class="card" v-if="imagesLearningState">
                 <h1>Image goes here...</h1>
@@ -211,8 +250,28 @@ hr {
             justify-content: center;
         }
 
-        p {
-            margin-top: 15px;
+        .learning-text {
+            margin-top: 20px;
+
+            div {
+                font-size: 1.3rem;
+                margin-bottom: 10px;
+                line-height: 1.6;
+
+                &:nth-child(1) {
+                    color: #2c3e50; // Japanese
+                    font-weight: 600;
+                }
+
+                &:nth-child(2) {
+                    color: #34495e; // Romaji
+                    font-style: italic;
+                }
+
+                &:nth-child(3) {
+                    color: #16a085; // English
+                }
+            }
         }
 
         .buttonForTexts {
@@ -259,8 +318,8 @@ hr {
 }
 
 @media (max-width: 768px) {
-  .modal .modal-content {
-    height: 80%;
-  }
+    .modal .modal-content {
+        height: 80%;
+    }
 }
 </style>
