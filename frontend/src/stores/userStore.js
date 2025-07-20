@@ -20,5 +20,31 @@ export const useUserStore = defineStore('user', () => {
         username.value = user.value.user_metadata.username
     }
 
-    return { user, name, username, getCurrentUser }
+    async function updatePoints() {
+    // Get the most recent points value from DB
+    const { data, error: selectError } = await supabase
+        .from('users_data')
+        .select('points')
+        .eq('name', name.value)
+        .single()
+
+    if (selectError) {
+        console.error('Fetch error in updatePoints:', selectError.message)
+        return
+    }
+
+    const newPoints = data.points + 5
+
+    const { error: updateError } = await supabase
+        .from('users_data')
+        .update({ points: newPoints })
+        .eq('name', name.value)
+
+    if (updateError) {
+        console.error('Update error in updatePoints:', updateError.message)
+        window.alert('Update point error')
+    }
+}
+
+    return { user, name, username, getCurrentUser, updatePoints }
 })

@@ -59,8 +59,8 @@ const message = ref('')
 const nextWord = async (word) => {
     await saveWord(word)
     await updateWordsLearned()
-    await getWordsLearned() 
-    await updatePoints()
+    await getWordsLearned()
+    await userStore.updatePoints()
 
     if (currentWord.value < vocabulary.value.length - 1) {
         currentWord.value++
@@ -125,32 +125,6 @@ async function updateWordsLearned() {
 
     if (updateError) {
         console.error('Update error in updateWordsLearned:', updateError.message)
-    }
-}
-
-async function updatePoints() {
-    // Get the most recent points value from DB
-    const { data, error: selectError } = await supabase
-        .from('users_data')
-        .select('points')
-        .eq('name', userStore.name)
-        .single()
-
-    if (selectError) {
-        console.error('Fetch error in updatePoints:', selectError.message)
-        return
-    }
-
-    const newPoints = data.points + 5
-
-    const { error: updateError } = await supabase
-        .from('users_data')
-        .update({ points: newPoints })
-        .eq('name', userStore.name)
-
-    if (updateError) {
-        console.error('Update error in updatePoints:', updateError.message)
-        window.alert('Update point error')
     }
 }
 

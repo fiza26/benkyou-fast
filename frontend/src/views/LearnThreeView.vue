@@ -85,6 +85,7 @@ const nextWord = async () => {
         console.log('Response:', response.data.result)
         if (response) {
             textIndex.value++
+            await userStore.updatePoints()
         }
         learningTexts.value = response.data.result
     } catch (error) {
