@@ -158,7 +158,8 @@ const showLess = (() => {
             </div>
             <div class="card-container">
                 <div class="card" v-for="word in learnedWords.slice(0, wordSlice)" :key="word.id"
-                    v-if="learnedWords.length > 0 && sortedWords.length < 1">
+                    v-if="learnedWords.length > 0 && sortedWords.length < 1" @click="advancedLearning(word)"
+                    :class="{ ifWordExists: checkIfWordExists(word) }">
                     <h1>{{ word.word }}</h1>
                     <p>{{ word.meaning }}</p>
                     <p>{{ word.furigana }}</p>
