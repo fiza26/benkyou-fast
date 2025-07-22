@@ -51,7 +51,7 @@ app.post('/gemini', async (req, res) => {
                         2. Romaji for the sentence.
                         3. The English translation of the sentence.
                         4. A brief explanation that is easy to understand for that sentence.
-                        Return only the sentence and translation. No explanation or extra text. 
+                        Only return the following. No unnecessary text. 
                         Format:
                         Japanese: ...
                         Romaji: ...

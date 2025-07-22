@@ -87,6 +87,11 @@ async function getWords() {
 }
 getWords()
 
+function checkIfWordExists(word) {
+    return words.value.some(advanced => advanced.word === word.word)
+}
+checkIfWordExists()
+
 console.log('Words from advanced learning', words.value)
 
 async function advancedLearning(word) {
@@ -164,7 +169,8 @@ const showLess = (() => {
                     <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
                 </div>
                 <div class="card" v-for="word in sortedWords" :key="word.id"
-                    v-if="sortedWords.length > 0 && !sortedWordsLoading" @click="advancedLearning(word)">
+                    v-if="sortedWords.length > 0 && !sortedWordsLoading" @click="advancedLearning(word)"
+                    :class="{ ifWordExists: checkIfWordExists(word) }">
                     <h1>{{ word.word }}</h1>
                     <p>{{ word.meaning }}</p>
                     <p>{{ word.furigana }}</p>
@@ -307,6 +313,11 @@ hr {
             }
         }
 
+        .ifWordExists {
+            background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+            color: white;
+        }
+
         .no-data {
             margin-top: 10px;
             margin-left: auto;
@@ -333,8 +344,8 @@ hr {
             background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
 
             &:hover {
-            transform: scale(1.1)
-        }
+                transform: scale(1.1)
+            }
         }
     }
 
@@ -357,8 +368,8 @@ hr {
             background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
 
             &:hover {
-            transform: scale(1.1)
-        }
+                transform: scale(1.1)
+            }
         }
     }
 }
