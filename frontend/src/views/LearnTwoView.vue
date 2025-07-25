@@ -1,10 +1,14 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import supabase from '@/supabase'
 import { useUserStore } from '@/stores/userStore'
 
 const userStore = useUserStore()
+
+onMounted(async () => {
+  await userStore.getCurrentUser()
+})
 
 const learnedWords = ref([])
 
@@ -95,8 +99,13 @@ checkIfWordExists()
 console.log('Words from advanced learning', words.value)
 
 async function advancedLearning(word) {
-    if (!words) {
-        window.alert('Words are not populated')
+    if (!words.value.length) {
+        window.alert('Words or user info not ready yet')
+        return
+    }
+
+    if (!userStore.name || !userStore.username) {
+        window.alert('User info is still loading, try again')
         return
     }
 
