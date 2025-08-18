@@ -22,7 +22,7 @@ getUsersData()
     <main>
         <div class="container">
             <div class="leaderboard">
-                <h1>Leaderboard</h1>
+                <h1>⭐ Leaderboard</h1>
                 <br>
                 <table>
                     <tr>

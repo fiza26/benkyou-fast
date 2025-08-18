@@ -208,20 +208,26 @@ async function checkLeaderboardRanking() {
 
       <div class="card-container">
         <div class="card">
-          <p>Learn Japanese words one by one.</p>
-          <Icon icon="hugeicons:online-learning-01" width="100" height="100" />
+          <div class="text-section">
+            <p>🚀 Learn Japanese words one by one.</p>
+          </div>
+          <hr>
           <RouterLink :to="'/learn'"><button>Learn ></button></RouterLink>
         </div>
 
         <div class="card">
-          <p>Relearn all the words you have learned so far.</p>
-          <Icon icon="material-symbols:memory" width="100" height="100" />
+          <div class="text-section">
+            <p>🗃️ Relearn all the words you have learned so far.</p>
+          </div>
+          <hr>
           <RouterLink :to="'/learntwo'"><button>Learn ></button></RouterLink>
         </div>
 
         <div class="card">
-          <p>Advanced language acquisition learning.</p>
-          <Icon icon="fluent-emoji-high-contrast:thinking-face" width="90" height="90" />
+          <div class="text-section">
+            <p>✨ Advanced language acquisition learning.</p>
+          </div>
+          <hr>
           <RouterLink :to="'/learnthree'"><button>Learn ></button></RouterLink>
         </div>
       </div>
@@ -230,7 +236,7 @@ async function checkLeaderboardRanking() {
   </main>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 * {
   margin: 0;
   padding: 0;
@@ -328,11 +334,14 @@ main {
     .card {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-end;
       font-family: "Poppins", sans-serif;
+      font-size: large;
       background-color: #ecf0f1;
+      background-image: url("../assets/doodle-art.jpg");
+      background-size: cover;
       height: 200px;
-      padding: 13px;
+      width: 100%;
       border-radius: 15px;
       box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
       margin-top: 30px;
@@ -340,22 +349,32 @@ main {
       transition: ease-in-out 0.5s;
       backdrop-filter: blur(10px);
       opacity: 0.8;
-      background-size: 20px 20px;
+
+      .text-section {
+        background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+        width: 100%;
+        padding: 13px;
+        color: white;
+      }
+
+      hr {
+        border: none;
+        border: 1px solid white;
+      }
 
       button {
         font-family: "Poppins", sans-serif;
         border: none;
         padding: 5px;
-        border-radius: 15px;
+        font-size: large;
+        border-bottom-left-radius: 15px;
+        border-bottom-right-radius: 15px;
         width: 100%;
         background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
         color: white;
         transition: ease-in-out 0.5s;
         cursor: pointer;
 
-        &:hover {
-          transform: scale(1.030);
-        }
       }
     }
   }

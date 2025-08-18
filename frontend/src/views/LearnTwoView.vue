@@ -7,7 +7,7 @@ import { useUserStore } from '@/stores/userStore'
 const userStore = useUserStore()
 
 onMounted(async () => {
-  await userStore.getCurrentUser()
+    await userStore.getCurrentUser()
 })
 
 const learnedWords = ref([])
@@ -218,7 +218,7 @@ hr {
     display: flex;
     flex-direction: column;
     transition: ease-in-out 0.5s;
-    // overflow-x: hidden;
+    overflow-x: hidden;
 
     .relearn-card {
         max-width: 100%;
@@ -272,6 +272,7 @@ hr {
     .card-container {
         display: flex;
         flex-wrap: wrap;
+        justify-content: space-between;
 
         .card {
             display: flex;

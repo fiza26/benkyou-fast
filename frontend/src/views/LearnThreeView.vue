@@ -12,19 +12,19 @@ const modalState = ref(true)
 const textsLearningState = ref(false)
 const imagesLearningState = ref(false)
 
-const textsLearning = (() => {
+const textsLearning = () => {
     textsLearningState.value = true
     modalState.value = false
-})
+}
 
-const imagesLearning = (() => {
+const imagesLearning = () => {
     imagesLearningState.value = true
     modalState.value = false
-})
+}
 
-const closeModal = (() => {
+const closeModal = () => {
     history.back()
-})
+}
 
 onMounted(async () => {
     if (userStore.name) {
@@ -33,7 +33,7 @@ onMounted(async () => {
 })
 
 const advancedLearningWords = ref([])
-const textIndex = ref(1)
+const textIndex = ref(0)
 
 async function getWordsAdvancedLearning() {
     const { data, error } = await supabase.from('advanced_learning').select().eq('name', userStore.name)
@@ -84,6 +84,7 @@ const nextWord = async () => {
         })
         console.log('Response:', response.data.result)
         if (response) {
+            await isItLearned()
             textIndex.value++
             await userStore.updatePoints()
         }
@@ -94,6 +95,16 @@ const nextWord = async () => {
         loadingState.value = false
     }
 }
+
+const isItLearned = async () => {
+    const currentWord = advancedLearningWords.value[textIndex.value]
+    if (!currentWord) return
+    await supabase.from('advanced_learning')
+        .update({ is_it_learned: true })
+        .eq('id', currentWord.id)
+        .eq('name', userStore.name)
+}
+
 </script>
 
 <template>
@@ -122,7 +133,7 @@ const nextWord = async () => {
                 <div v-if="learningTexts === ''" class="loading">
                     <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
                 </div>
-                <h3>{{ textIndex }} / {{ advancedLearningWords.length }}</h3>
+                <h3>{{ textIndex + 1 }} / {{ advancedLearningWords.length }}</h3>
                 <div v-if="loadingState" class="loading">
                     <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
                 </div>

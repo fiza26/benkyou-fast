@@ -182,8 +182,8 @@ const achievementOkay = () => {
     <main>
         <div class="modal" v-if="modalState">
             <div class="modal-content">
+                <Icon icon="solar:confetti-outline" width="35%" height="35%" />
                 <h1>You have learned {{ currentWord }} words this session
-                    <Icon icon="solar:confetti-outline" style="vertical-align: middle; color: white" />
                 </h1>
                 <button @click="ok()">Ok</button>
             </div>
@@ -347,6 +347,7 @@ hr {
                 button {
                     font-family: "Poppins", sans-serif;
                     border: none;
+                    width: 100%;
                     padding: 5px;
                     margin-top: 5px;
                     border-radius: 15px;
