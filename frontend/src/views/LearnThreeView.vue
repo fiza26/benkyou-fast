@@ -36,21 +36,42 @@ const advancedLearningWords = ref([])
 const textIndex = ref(0)
 
 async function getWordsAdvancedLearning() {
-    const { data, error } = await supabase.from('advanced_learning').select().eq('name', userStore.name)
+    const { data, error } = await supabase.from('advanced_learning')
+        .select('*')
+        .eq('name', userStore.name)
+        .eq('is_it_learned', false)
+        .order('id', { ascending: true }) // <-- ADD THIS LINE
 
     if (error) {
         console.error('Error fetching words from advanced learning', error.message)
     }
 
-    advancedLearningWords.value = data
+    // advancedLearningWords.value = data
+
+
+    advancedLearningWords.value = data.sort((a, b) => a.id - b.id);
+
+
+    if (data.length > 0) {
+        advancedTexts(data[0])
+    }
 }
 
 const learningTexts = ref('')
 const countWord = ref(0)
 
-const advancedTexts = async () => {
+// Change advancedTexts to accept the word object
+const advancedTexts = async (currentWord) => {
+    if (!currentWord) {
+        // Handle case where array might be empty (all words learned)
+        learningTexts.value = "You have finished all words!";
+        return;
+    }
+
     try {
         const response = await axios.post(`http://localhost:3000/gemini`, {
+            // PASS THE WORD OBJECT TO THE BACKEND
+            wordData: currentWord,
             countWord: Number(countWord.value)
         })
         console.log('Response:', response.data.result)
@@ -60,12 +81,6 @@ const advancedTexts = async () => {
     }
 }
 
-watchEffect(() => {
-    if (countWord.value === 0) {
-        advancedTexts()
-    }
-})
-
 const loadingState = ref(false)
 
 const doneModalState = ref(false)
@@ -74,21 +89,40 @@ const doneModal = () => {
     doneModalState.value = true
 }
 
+// Recommended Change:
 const nextWord = async () => {
     try {
         loadingState.value = true
+
+        // 1. Mark the CURRENT word as learned and update points (before changing text/index)
+        await isItLearned()
+        await userStore.updatePoints()
+
+        // 2. Advance the index to the next word
+        textIndex.value++
+
+        // 3. Check if there are more words to display in the UI array
+        if (textIndex.value >= advancedLearningWords.value.length) {
+            // All words in the fetched list are learned. Show the done modal or handle end state.
+            loadingState.value = false;
+            doneModal();
+            return;
+        }
+
+        // 4. Increment countWord and fetch the new text from the API
         countWord.value++
         console.log('Count Word:', countWord.value)
+
+        const currentWord = advancedLearningWords.value[textIndex.value]
+
         const response = await axios.post(`http://localhost:3000/gemini`, {
-            countWord: countWord.value
+            wordData: currentWord,
+            countWord: Number(countWord.value)
         })
+
         console.log('Response:', response.data.result)
-        if (response) {
-            await isItLearned()
-            textIndex.value++
-            await userStore.updatePoints()
-        }
         learningTexts.value = response.data.result
+
     } catch (error) {
         console.log(error)
     } finally {
@@ -197,6 +231,7 @@ hr {
         border-top-left-radius: 15px;
         border-top-right-radius: 15px;
         width: 70%;
+        height: 50%;
         position: fixed;
         bottom: 0;
         text-align: center;
@@ -326,6 +361,26 @@ hr {
                 }
             }
         }
+    }
+}
+
+@keyframes moveUp {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        border-radius: 15px;
+    }
+
+    90% {
+        border-radius: 15px;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
     }
 }
 

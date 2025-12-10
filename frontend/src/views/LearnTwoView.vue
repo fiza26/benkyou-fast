@@ -99,10 +99,10 @@ checkIfWordExists()
 console.log('Words from advanced learning', words.value)
 
 async function advancedLearning(word) {
-    if (!words.value.length) {
-        window.alert('Words or user info not ready yet')
-        return
-    }
+    // if (!words.value.length) {
+    //     window.alert('Words or user info not ready yet')
+    //     return
+    // }
 
     if (!userStore.name || !userStore.username) {
         window.alert('User info is still loading, try again')
@@ -123,7 +123,8 @@ async function advancedLearning(word) {
         romaji: word.romaji,
         level: word.level,
         name: userStore.name,
-        username: userStore.username
+        username: userStore.username,
+        is_it_learned: false
     })
 
     if (error) {
