@@ -7,8 +7,9 @@ import supabase from '@/supabase'
 import { useUserStore } from '@/stores/userStore'
 
 const userStore = useUserStore()
-
 const route = useRoute()
+const mobileNavState = ref(false)
+const userPoints = ref(0)
 
 onMounted(async () => {
   if (userStore.name) {
@@ -18,193 +19,357 @@ onMounted(async () => {
 
 watch(
   () => userStore.name,
-  (newName) => {
-    if (newName) {
-      getPoints()
-    }
-  }
+  (newName) => { if (newName) getPoints() }
 )
 
-const mobileNavState = ref(false)
-
-const showMobileNav = () => {
-  mobileNavState.value = !mobileNavState.value
-}
-
-const userPoints = ref(null)
-
 async function getPoints() {
-  if (!userStore.name) return 
+  if (!userStore.name) return
   const { data, error } = await supabase.from('users_data').select('points').eq('name', userStore.name).single()
-
-  if (error) {
-    console.error('Error fetching user points', error.message)
-    return
-  }
-
-  userPoints.value = data.points
+  if (!error) userPoints.value = data.points
 }
 
 async function logout() {
-  try {
-    const { error } = await supabase.auth.signOut()
-    if (!error) {
-      router.push({ name: 'login' })
-    } else {
-      console.error('Logout error', error)
-    }
-  } catch (err) {
-    console.error('Unexpected error', err)
-  }
+  const { error } = await supabase.auth.signOut()
+  if (!error) router.push({ name: 'login' })
+}
+
+const toggleMobileNav = () => {
+  mobileNavState.value = !mobileNavState.value
 }
 </script>
 
 <template>
-  <header>
-    <nav>
-      <div class="home">
-        <RouterLink :to="'/'" v-if="route.name != 'login'"><span>
-            <Icon icon="mdi:home" style="font-size: 25px; vertical-align: middle;" color="black" />
-            <!-- Home -->
-          </span></RouterLink>
-      </div>
-      <div class="nav-link">
-        <RouterLink :to="'/leaderboard'"><span v-if="route.name != 'login'">
-            <Icon icon="iconoir:leaderboard-star" style="font-size: 25px; margin-right: 6px; color: black" />
-            Leaderboard
-          </span></RouterLink>
-        <span v-if="route.name != 'login'">
-          <Icon icon="grommet-icons:scorecard" style="font-size: 19px; margin-right: 6px; color: black" /> {{ userPoints }} Points
-        </span>
-        <span @click='logout()' v-if="route.name != 'login'">
-          <Icon icon="solar:logout-broken" width="24" height="24" /> Logout
-        </span>
-      </div>
-      <div class="mobile-nav-link" v-if="route.name != 'login'">
-        <Icon icon="arcticons:hamburger-menu" width="30" height="30" @click="showMobileNav()" />
+  <header v-if="route.name != 'landing' && route.name != 'login'">
+    <nav class="navbar">
+      <div class="nav-container">
+        <RouterLink to="/" class="brand">
+          <!-- <div class="logo-circle">
+            <Icon icon="solar:Lo-Fi-bold-duotone" class="logo-icon" />
+          </div> -->
+          <span class="brand-name">BENKYOU FAST</span>
+        </RouterLink>
+
+        <div class="nav-links">
+          <RouterLink to="/leaderboard" class="nav-item">
+            <Icon icon="solar:ranking-bold-duotone" />
+            <span>Leaderboard</span>
+          </RouterLink>
+
+          <div class="points-badge">
+            <Icon icon="solar:star-bold" class="star-icon" />
+            <span>{{ userPoints }} <small>PTS</small></span>
+          </div>
+
+          <button @click="logout" class="logout-btn">
+            <Icon icon="solar:logout-3-bold-duotone" />
+          </button>
+        </div>
+
+        <button class="mobile-toggle" @click="toggleMobileNav">
+          <Icon :icon="mobileNavState ? 'solar:close-circle-bold' : 'solar:hamburger-menu-bold'" />
+        </button>
       </div>
     </nav>
-    <div class="mobile-sidebar" v-if="mobileNavState && route.name != 'login'">
-      <div class="sidebar-content">
-        <span @click="mobileNavState = false" class="close-btn">✕</span>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/leaderboard">Leaderboard</RouterLink>
-        <span>{{ userPoints }} Points</span>
-        <span @click="logout">Logout</span>
-      </div>
-    </div>
 
+    <Transition name="fade">
+      <div class="sidebar-overlay" v-if="mobileNavState" @click="toggleMobileNav"></div>
+    </Transition>
+
+    <Transition name="slide">
+      <aside class="sidebar" v-if="mobileNavState">
+        <div class="sidebar-header">
+          <div class="user-profile">
+            <div class="avatar">{{ userStore.name?.charAt(0) || 'U' }}</div>
+            <div class="user-info">
+              <p class="name">{{ userStore.name }}</p>
+              <p class="points-text">{{ userPoints }} Points</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-links">
+          <RouterLink to="/" @click="toggleMobileNav" class="side-item">
+            <Icon icon="solar:home-2-bold-duotone" /> Home
+          </RouterLink>
+          <RouterLink to="/leaderboard" @click="toggleMobileNav" class="side-item">
+            <Icon icon="solar:ranking-bold-duotone" /> Leaderboard
+          </RouterLink>
+          <hr class="side-divider" />
+          <button @click="logout" class="side-item logout">
+            <Icon icon="solar:logout-3-bold-duotone" /> Logout
+          </button>
+        </div>
+      </aside>
+    </Transition>
   </header>
-  <RouterView />
+
+  <div class="page-content">
+    <RouterView />
+  </div>
 </template>
 
-<style lang="scss">
-@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
-
+<style lang="scss" scoped>
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
 }
 
-body {
-  font-family: "Poppins", sans-serif;
-  background-color: #dddd;
+.navbar {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
+  max-width: 1200px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+  .nav-container {
+    height: 100%;
+    padding: 0 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
-a {
-  text-decoration: none;
-  color: black;
-}
-
-nav {
+.brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 60px;
-  width: 100%;
+  gap: 12px;
+  text-decoration: none;
+
+  .logo-circle {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #00d2ff 0%, #3a47d5 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+  }
+
+  .brand-name {
+    font-weight: 800;
+    color: #1e293b;
+    font-size: 1.1rem;
+    letter-spacing: -0.5px;
+  }
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: 0.3s;
+    text-decoration: none;
+
+    &:hover {
+      color: #3a47d5;
+    }
+
+    &.router-link-active {
+      color: #3a47d5;
+    }
+  }
+}
+
+.points-badge {
+  background: #f1f5f9;
+  padding: 8px 16px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+
+  .star-icon {
+    color: #f59e0b;
+  }
+
+  small {
+    font-size: 0.6rem;
+    opacity: 0.5;
+  }
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 24px;
+  cursor: pointer;
+  transition: 0.3s;
+
+  &:hover {
+    color: #ef4444;
+    transform: scale(1.1);
+  }
+}
+
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+/* Sidebar & Overlay */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1001;
+}
+
+.sidebar {
   position: fixed;
   top: 0;
-  z-index: 1;
-  background-color: #ecf0f1;
-  -webkit-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
-  -moz-box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
-  box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
-}
+  right: 0;
+  width: 280px;
+  height: 100vh;
+  background: white;
+  z-index: 1002;
+  padding: 30px;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
 
-nav .home {
-  margin-left: 80px;
-}
+  .sidebar-header {
+    margin-bottom: 40px;
 
-nav span {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 15px;
 
-nav .nav-link {
-  display: flex;
-  justify-content: space-around;
-  width: 350px;
-  margin-right: 80px
-}
+      .avatar {
+        width: 50px;
+        height: 50px;
+        background: #3a47d5;
+        color: white;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+      }
 
-nav .mobile-nav-link {
-  display: none;
-  cursor: pointer;
-}
+      .name {
+        font-weight: 700;
+        color: #1e293b;
+      }
 
-.mobile-sidebar {
-  position: fixed;
-  top: 60px; // below the navbar
-  left: 0;
-  width: 100%;
-  height: calc(100% - 60px); // fill remaining screen
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 2;
-  display: flex;
-  justify-content: flex-start;
-}
-
-.sidebar-content {
-  width: 250px;
-  background-color: #fff;
-  height: 100%;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  transform: translateX(-100%);
-  animation: slideIn 0.3s forwards;
-}
-
-.sidebar-content a,
-.sidebar-content span {
-  font-size: 18px;
-  color: black;
-  cursor: pointer;
-}
-
-.close-btn {
-  align-self: flex-end;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-@keyframes slideIn {
-  to {
-    transform: translateX(0);
+      .points-text {
+        font-size: 0.85rem;
+        color: #64748b;
+      }
+    }
   }
+
+  .sidebar-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .side-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #64748b;
+      font-weight: 600;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      transition: 0.2s;
+
+      &:hover {
+        background: #f1f5f9;
+        color: #3a47d5;
+      }
+
+      &.router-link-active {
+        background: #eff6ff;
+        color: #3a47d5;
+      }
+
+      &.logout {
+        color: #ef4444;
+
+        &:hover {
+          background: #fef2f2;
+        }
+      }
+    }
+
+    .side-divider {
+      border: none;
+      border-top: 1px solid #f1f5f9;
+      margin: 10px 0;
+    }
+  }
+}
+
+/* Transitions */
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 @media (max-width: 768px) {
-  nav .nav-link {
+  .nav-links {
     display: none;
   }
 
-  nav .mobile-nav-link {
+  .mobile-toggle {
     display: block;
-    margin-right: 80px;
   }
+
+  .navbar {
+    height: 60px;
+    top: 10px;
+  }
+}
+
+.page-content {
+  padding-top: 30px;
 }
 </style>

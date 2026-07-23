@@ -1,10 +1,27 @@
 <script setup>
-import { ref, computed, onMounted, watchEffect, watch } from 'vue'
+import { ref, onMounted, watchEffect } from 'vue'
 import router from '@/router';
 import supabase from '@/supabase';
+import { Icon } from '@iconify/vue'
 
 const localUser = ref(null)
 
+// Toast/Status Modal State
+const toastState = ref(false)
+const toastMessage = ref('')
+const toastType = ref('success') // 'success' or 'error'
+
+const showToast = (msg, type = 'success') => {
+    toastMessage.value = msg
+    toastType.value = type
+    toastState.value = true
+}
+
+const closeToast = () => {
+    toastState.value = false
+}
+
+// Check if user is already logged in
 async function isLoggedIn() {
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
@@ -20,41 +37,46 @@ watchEffect(() => {
     }
 })
 
+// Form Fields
 const name = ref('')
 const username = ref('')
 const email = ref('')
 const password = ref('')
 
 const loginCardState = ref(true)
-const signUpCardState = ref(false)
 
+// Authentication Logic
 async function login() {
     const { data, error } = await supabase.auth.signInWithPassword({
         email: email.value,
         password: password.value
     })
     if (error) {
-        console.log('Login Error')
-        window.alert('Login error, incorrect email or password')
+        showToast('Login error, incorrect email or password', 'error')
         email.value = ''
         password.value = ''
     } else {
+        showToast('Login successful! Welcome back.')
         setTimeout(() => {
             router.push({ name: 'home' })
-        }, 1000)
+        }, 1500)
     }
 }
 
 async function checkIfUsernameExist() {
-    const { data, error } = await supabase.from('users_data').select('username').eq('username', username.value).single()
+    const { data, error } = await supabase
+        .from('users_data')
+        .select('username')
+        .eq('username', username.value.trim())
+        .maybeSingle()
 
     if (error) {
-        console.error('Error fetching username', error.message)
+        showToast('Database connection error', 'error')
         return false
     }
 
     if (data) {
-        window.alert('Username already exist, try another username')
+        showToast('Username already exists, try another', 'error')
         return false
     }
 
@@ -63,14 +85,12 @@ async function checkIfUsernameExist() {
 
 async function signUp() {
     if (!name.value || !username.value || !email.value || !password.value) {
-        window.alert('Field can not bet empty')
+        showToast('Fields cannot be empty', 'error')
         return
     }
 
     const usernameAvailable = await checkIfUsernameExist()
-    if (!usernameAvailable) {
-        return
-    }
+    if (!usernameAvailable) return
 
     const { data, error } = await supabase.auth.signUp({
         email: email.value,
@@ -84,15 +104,12 @@ async function signUp() {
     })
 
     if (error) {
-        console.log('SignUp Error')
-        window.alert('SignUp error, try again')
-        name.value = ''
-        username.value = ''
-        email.value = ''
-        password.value = ''
+        showToast(`SignUp error: ${error.message}`, 'error')
     } else {
-        window.alert('Registration completed, check your email to confirm')
         await addUser()
+        showToast('Registration completed! Check your email.')
+        name.value = username.value = email.value = password.value = ''
+        loginCardState.value = true
     }
 }
 
@@ -101,47 +118,69 @@ async function addUser() {
         name: name.value,
         email: email.value,
         day_streak: 1,
-        username: username.value
+        username: username.value.trim()
     })
-
-    if (error) {
-        console.log('Error while adding user:', error)
-    }
+    if (error) console.error('Error adding user profile:', error)
 }
-
-const signUpState = (() => {
-    signUpCardState.value = true
-    loginCardState.value = false
-})
-
-const loginState = (() => {
-    loginCardState.value = true
-})
 </script>
 
 <template>
     <main>
+        <div class="modal" v-if="toastState">
+            <div class="modal-content" :class="{ 'error-bg': toastType === 'error' }">
+                <Icon v-if="toastType === 'success'" icon="fluent-emoji:check-mark-button" width="80" height="80" />
+                <Icon v-else icon="fluent-emoji:cross-mark" width="80" height="80" />
+                <h1>{{ toastType === 'success' ? 'Success!' : 'Oops!' }}</h1>
+                <p>{{ toastMessage }}</p>
+                <button @click="closeToast()">Okay</button>
+            </div>
+        </div>
+
         <div class="container">
             <div class="card-container">
-                <div class="login-card" v-if="loginCardState">
-                    <label for="">Email</label><br><br>
-                    <input type="text" placeholder="Enter your email" v-model="email" required>
-                    <label for="">Password</label><br><br>
-                    <input type="password" placeholder="Enter your password" v-model="password" required>
-                    <button type="submit" @click="login()">Login</button>
-                    <p class="signup-text">Don't have an account? <span @click="signUpState()">create one</span></p>
+                <div class="auth-card" v-if="loginCardState">
+                    <div class="header-section">
+                        <h1>Login</h1>
+                        <p>Welcome back to Benkyou Fast</p>
+                    </div>
+
+                    <div class="form-body">
+                        <label>Email</label>
+                        <input type="email" placeholder="Enter your email" v-model="email" @keyup.enter="login">
+
+                        <label>Password</label>
+                        <input type="password" placeholder="Enter your password" v-model="password"
+                            @keyup.enter="login">
+
+                        <button @click="login()">Login</button>
+                        <p class="switch-text">Don't have an account? <span @click="loginCardState = false">Create
+                                one</span></p>
+                    </div>
                 </div>
-                <div class="signup-card" v-else>
-                    <label for="">Name</label><br><br>
-                    <input type="text" placeholder="Enter your name" v-model="name" required>
-                    <label for="">Username</label><br><br>
-                    <input type="text" placeholder="Enter your username" v-model="username" required>
-                    <label for="">Email</label><br><br>
-                    <input type="text" placeholder="Enter your email" v-model="email" required>
-                    <label for="">Password</label><br><br>
-                    <input type="password" placeholder="Enter your password" v-model="password" required>
-                    <button type="submit" @click="signUp()">Sign Up</button>
-                    <p class="login-text">Already have an account? <span @click="loginState()">login</span></p>
+
+                <div class="auth-card" v-else>
+                    <div class="header-section">
+                        <h1>Sign Up</h1>
+                        <p>Join the community today</p>
+                    </div>
+
+                    <div class="form-body">
+                        <label>Name</label>
+                        <input type="text" placeholder="Enter your name" v-model="name">
+
+                        <label>Username</label>
+                        <input type="text" placeholder="Enter your username" v-model="username">
+
+                        <label>Email</label>
+                        <input type="email" placeholder="Enter your email" v-model="email">
+
+                        <label>Password</label>
+                        <input type="password" placeholder="Enter your password" v-model="password">
+
+                        <button @click="signUp()">Sign Up</button>
+                        <p class="switch-text">Already have an account? <span
+                                @click="loginCardState = true">Login</span></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -155,128 +194,182 @@ const loginState = (() => {
     box-sizing: border-box;
 }
 
-.container {
-    margin: 80px;
+main {
+    margin-top: 50px;
+}
+
+// Reuse your Modal Style
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99;
     display: flex;
-    flex-direction: column;
-    transition: ease-in-out 0.5s;
+    justify-content: center;
 
-    .card-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+    .modal-content {
+        animation: moveUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+        color: white;
+        padding: 30px;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+        width: 100%;
+        max-width: 500px;
+        height: 50%;
+        position: fixed;
+        bottom: 0;
+        text-align: center;
+        box-shadow: 0px -10px 46px -19px rgba(0, 0, 0, 0.75);
 
-        .login-card {
-            font-family: "Poppins", sans-serif;
-            background-color: #ecf0f1;
-            width: 350px;
-            height: 400px;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
-            margin-top: 30px;
-            margin-bottom: 15px;
-            transition: ease-in-out 0.5s;
-            backdrop-filter: blur(10px);
-
-            label {
-                margin-bottom: 10px;
-            }
-
-            input {
-                font-family: "Poppins", sans-serif;
-                width: 100%;
-                border-radius: 15px;
-                padding: 10px;
-                border: none;
-                margin-bottom: 25px;
-            }
-
-            button {
-                font-family: "Poppins", sans-serif;
-                width: 100%;
-                border: none;
-                border-radius: 15px;
-                padding: 10px;
-                color: white;
-                cursor: pointer;
-                background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-            }
-
-            .signup-text {
-                margin-top: 50px;
-                font-size: 15px;
-                text-align: center;
-
-                span {
-                    color: white;
-                    padding: 3px;
-                    cursor: pointer;
-                    text-decoration: underline;
-                    background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-                }
-            }
-
+        &.error-bg {
+            background: linear-gradient(90deg, #ff4b2b 0%, #ff416c 100%);
         }
 
-        .signup-card {
+        h1 {
             font-family: "Poppins", sans-serif;
-            background-color: #ecf0f1;
-            width: 350px;
-            height: 620px;
-            padding: 30px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-family: "Poppins", sans-serif;
+            opacity: 0.9;
+        }
+
+        button {
+            font-family: "Poppins", sans-serif;
+            margin-top: 20px;
+            border: none;
+            padding: 10px;
             border-radius: 15px;
-            box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
-            margin-top: 30px;
-            margin-bottom: 15px;
-            transition: ease-in-out 0.5s;
-            backdrop-filter: blur(10px);
+            width: 40%;
+            background-color: white;
+            color: #3a47d5;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
 
-            label {
-                margin-bottom: 10px;
+            &:hover {
+                transform: scale(1.05);
             }
-
-            input {
-                font-family: "Poppins", sans-serif;
-                width: 100%;
-                border-radius: 15px;
-                padding: 10px;
-                border: none;
-                margin-bottom: 25px;
-            }
-
-            button {
-                font-family: "Poppins", sans-serif;
-                width: 100%;
-                border: none;
-                border-radius: 15px;
-                padding: 10px;
-                color: white;
-                cursor: pointer;
-                background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-            }
-
-            .login-text {
-                margin-top: 50px;
-                font-size: 15px;
-                text-align: center;
-
-                span {
-                    color: white;
-                    padding: 3px;
-                    cursor: pointer;
-                    text-decoration: underline;
-                    background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-                }
-            }
-
         }
     }
 }
 
-@media screen and (max-width: 768px) {
-    .container .card-container .login-card .signup-text {
-        font-size: 10px;
+.container {
+    margin: 40px auto;
+    display: flex;
+    justify-content: center;
+    font-family: "Poppins", sans-serif;
+
+    .card-container {
+        width: 100%;
+        max-width: 450px;
+        padding: 20px;
+
+        .auth-card {
+            background-color: #ecf0f1;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
+            transition: 0.5s ease-in-out;
+
+            .header-section {
+                background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+                padding: 40px 20px;
+                color: white;
+                text-align: center;
+
+                h1 {
+                    font-size: 2.5rem;
+                }
+
+                p {
+                    opacity: 0.8;
+                    font-size: 0.9rem;
+                }
+            }
+
+            .form-body {
+                padding: 30px;
+
+                label {
+                    display: block;
+                    margin-bottom: 8px;
+                    font-weight: 600;
+                    color: #2c3e50;
+                }
+
+                input {
+                    width: 100%;
+                    font-family: "Poppins", sans-serif;
+                    padding: 12px;
+                    border-radius: 12px;
+                    border: 2px solid transparent;
+                    background-color: white;
+                    margin-bottom: 20px;
+                    transition: 0.3s;
+
+                    &:focus {
+                        outline: none;
+                        border-color: #00d2ff;
+                    }
+                }
+
+                button {
+                    width: 100%;
+                    font-family: "Poppins", sans-serif;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 12px;
+                    background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+                    color: white;
+                    font-weight: bold;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+                    transition: 0.3s;
+                    margin-top: 10px;
+
+                    &:hover {
+                        transform: scale(1.02);
+                    }
+                }
+
+                .switch-text {
+                    text-align: center;
+                    margin-top: 25px;
+                    font-size: 0.9rem;
+
+                    span {
+                        color: #3a47d5;
+                        font-weight: bold;
+                        cursor: pointer;
+                        text-decoration: underline;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@keyframes moveUp {
+    0% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin: 20px;
     }
 }
 </style>

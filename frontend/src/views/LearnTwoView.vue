@@ -1,118 +1,91 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import supabase from '@/supabase'
 import { useUserStore } from '@/stores/userStore'
 
 const userStore = useUserStore()
 
-onMounted(async () => {
-    await userStore.getCurrentUser()
-})
-
 const learnedWords = ref([])
-
-async function fetchWords() {
-    const { data, error } = await supabase.from('words').select()
-    if (data) {
-        learnedWords.value = data
-    } else {
-        console.log(error)
-    }
-    console.log(learnedWords.value)
-}
-
-setTimeout(() => {
-    fetchWords()
-}, '1000')
-
+const words = ref([])
 const showRelearnForm = ref(false)
-
-const relearnState = (() => {
-    showRelearnForm.value = !showRelearnForm.value
-})
-
 const howManyWords = ref(null)
 const wordLevel = ref(null)
 const sortedWords = ref([])
 const sortedWordsLoading = ref(false)
+const wordSlice = ref(12)
+
+// Toast Notification State
+const toast = ref({ show: false, message: '', type: 'info' })
+
+const triggerToast = (msg, type = 'info') => {
+    toast.value = { show: true, message: msg, type }
+    setTimeout(() => { toast.value.show = false }, 3000)
+}
+
+onMounted(async () => {
+    await userStore.getCurrentUser()
+    fetchWords()
+    getWords()
+})
+
+async function fetchWords() {
+    const { data, error } = await supabase.from('words').select()
+    if (data) learnedWords.value = data
+    else console.error(error)
+}
+
+async function getWords() {
+    const { data, error } = await supabase.from('advanced_learning').select()
+    if (data) words.value = data
+}
+
+const relearnState = () => {
+    showRelearnForm.value = !showRelearnForm.value
+}
 
 const relearnWords = () => {
     const numWords = parseInt(howManyWords.value) || 0
     const level = parseInt(wordLevel.value) || 0
 
-    if (!numWords) {
-        window.alert('Please enter a valid number of words')
-        return
-    } else if (!level || level > 5) {
-        window.alert('Please enter a valid level')
+    if (!numWords || level < 1 || level > 5) {
+        triggerToast('Please enter a valid number and level', 'warning')
         return
     }
 
-    if (numWords > learnedWords.value.length) {
-        window.alert('Number of words inputted is higher than the total of words learned')
+    const availableWords = learnedWords.value.filter(word => Number(word.level) === level)
+
+    if (availableWords.length === 0) {
+        triggerToast(`No N${level} words found in your history.`, 'warning')
         return
     }
-
-    const levelExists = learnedWords.value.some(word => Number(word.level) === level)
-    if (!levelExists) {
-        window.alert('Level inputted is not available on learned words yet')
-        return
-    }
-
-    sortedWords.value = learnedWords.value
-        .filter(word => Number(word.level) === level) // Ensure `word.level` is a number
-        .sort(() => Math.random() - 0.5) // Randomize
-        .slice(0, numWords) // Limit number of words
 
     sortedWordsLoading.value = true
 
-    loadingTimeout()
+    // Logic: Shuffle and Slice
+    sortedWords.value = [...availableWords]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, numWords)
 
-    console.log('Sorted Words:', sortedWords.value) // Debugging
-}
-
-const loadingTimeout = (() => {
     setTimeout(() => {
         sortedWordsLoading.value = false
-    }, 1000)
-})
-
-const words = ref([])
-
-async function getWords() {
-    const { data, error } = await supabase.from('advanced_learning').select()
-
-    if (data) {
-        words.value = data
-    } else {
-        console.log('Error', error)
-    }
+        showRelearnForm.value = false
+        triggerToast(`Generated ${sortedWords.value.length} words for review!`, 'success')
+    }, 800)
 }
-getWords()
 
 function checkIfWordExists(word) {
     return words.value.some(advanced => advanced.word === word.word)
 }
-checkIfWordExists()
-
-console.log('Words from advanced learning', words.value)
 
 async function advancedLearning(word) {
-    // if (!words.value.length) {
-    //     window.alert('Words or user info not ready yet')
-    //     return
-    // }
-
-    if (!userStore.name || !userStore.username) {
-        window.alert('User info is still loading, try again')
+    if (!userStore.name) {
+        triggerToast('User session loading...', 'info')
         return
     }
 
-    const exists = words.value.some(advanced => advanced.word === word.word)
-
-    if (exists) {
-        window.alert('This word is already in advanced learning')
+    if (checkIfWordExists(word)) {
+        triggerToast('Already in Advanced Learning', 'info')
         return
     }
 
@@ -127,73 +100,114 @@ async function advancedLearning(word) {
         is_it_learned: false
     })
 
-    if (error) {
-        console.log(error)
-        window.alert('Insert error')
-    } else {
+    if (!error) {
         words.value.push(word)
-        window.alert('Selected word has been added to advanced learning')
+        triggerToast(`Added ${word.word} to Advanced Learning`, 'success')
     }
 }
 
-const wordSlice = ref(12)
-
-const showMore = (() => {
-    wordSlice.value = learnedWords.value.length
-})
-
-const showLess = (() => {
-    wordSlice.value = 12
-})
-
+const showMore = () => { wordSlice.value = learnedWords.value.length }
+const showLess = () => { wordSlice.value = 12 }
 </script>
 
 <template>
     <main>
+        <Transition name="toast">
+            <div v-if="toast.show" class="toast-card" :class="toast.type">
+                <Icon :icon="toast.type === 'success' ? 'solar:check-circle-bold' : 'solar:info-circle-bold'" />
+                <span>{{ toast.message }}</span>
+            </div>
+        </Transition>
+
         <div class="container">
-            <div class="relearn-card">
-                <h3>Relearn all the words you have learned so far to keep your memory of the vocabulary sharp.</h3>
-                <button @click="relearnState()" v-if="!showRelearnForm">Start</button>
-                <button @click="relearnState()" v-else>Close</button>
-                <hr v-if="showRelearnForm">
-                <div class="relearn-form" v-if="showRelearnForm">
-                    <form @submit.prevent>
-                        <label for="">How many words do you want to learn today?</label><br><br>
-                        <input type="number" placeholder="Number of words" v-model="howManyWords"><br>
-                        <label for="">Choose level</label><br><br>
-                        <input type="number" placeholder="Choose level (1-5)" v-model="wordLevel"><br>
-                        <button @click="relearnWords()">Ok</button>
-                    </form>
+            <div class="page-header">
+                <div class="relearn-banner">
+                    <div class="banner-text">
+                        <h2>Memory Refresh</h2>
+                        <p>Keep your vocabulary sharp by revisiting words you've already mastered.</p>
+                    </div>
+                    <button @click="relearnState()" :class="{ 'btn-active': showRelearnForm }">
+                        <Icon :icon="showRelearnForm ? 'solar:close-circle-bold' : 'solar:play-circle-bold'" />
+                        {{ showRelearnForm ? 'Cancel' : 'Setup Session' }}
+                    </button>
                 </div>
+
+                <Transition name="slide">
+                    <div class="setup-form-card" v-if="showRelearnForm">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>Session Size</label>
+                                <input type="number" placeholder="e.g. 20 words" v-model="howManyWords">
+                            </div>
+                            <div class="input-group">
+                                <label>JLPT Level</label>
+                                <select v-model="wordLevel">
+                                    <option :value="null" disabled>Select Level</option>
+                                    <option v-for="n in 5" :key="n" :value="n">N{{ n }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="submit-btn" @click="relearnWords()" :disabled="sortedWordsLoading">
+                            {{ sortedWordsLoading ? 'Randomizing...' : 'Start Refresh' }}
+                        </button>
+                    </div>
+                </Transition>
             </div>
-            <div class="card-container">
-                <div class="card" v-for="word in learnedWords.slice(0, wordSlice)" :key="word.id"
-                    v-if="learnedWords.length > 0 && sortedWords.length < 1" @click="advancedLearning(word)"
-                    :class="{ ifWordExists: checkIfWordExists(word) }">
-                    <h1>{{ word.word }}</h1>
-                    <p>{{ word.meaning }}</p>
-                    <p>{{ word.furigana }}</p>
-                    <p>{{ word.romaji }}</p>
-                    <p>Level : {{ word.level }}</p>
+
+            <div class="content-section">
+                <div class="section-title" v-if="sortedWords.length > 0">
+                    <h3>Focusing on <span>{{ sortedWords.length }}</span> review words</h3>
+                    <button class="text-btn" @click="sortedWords = []">
+                        <Icon icon="solar:restart-bold" /> Reset Filter
+                    </button>
                 </div>
-                <div class="no-data" v-if="learnedWords.length === 0 || sortedWordsLoading">
-                    <Icon icon="line-md:loading-twotone-loop" style="color: black; font-size: 100px;" />
+
+                <div class="card-grid">
+                    <div v-if="sortedWordsLoading || learnedWords.length === 0" class="loader-box">
+                        <Icon icon="line-md:loading-twotone-loop" class="spinner" />
+                        <p>Syncing your progress...</p>
+                    </div>
+
+                    <template v-else>
+                        <div v-for="word in (sortedWords.length > 0 ? sortedWords : learnedWords.slice(0, wordSlice))"
+                            :key="word.id" class="vocab-card" :class="{ 'is-advanced': checkIfWordExists(word) }"
+                            @click="advancedLearning(word)">
+
+                            <div class="card-badge" v-if="checkIfWordExists(word)">
+                                <Icon icon="solar:star-bold" />
+                            </div>
+
+                            <div class="card-top">
+                                <span class="furigana">{{ word.furigana }}</span>
+                                <h1 class="kanji">{{ word.word }}</h1>
+                            </div>
+
+                            <div class="card-bottom">
+                                <p class="meaning">{{ word.meaning }}</p>
+                                <div class="card-footer">
+                                    <span class="level-tag">N{{ word.level }}</span>
+                                    <span class="romaji">{{ word.romaji }}</span>
+                                </div>
+                            </div>
+
+                            <div class="hover-overlay" v-if="!checkIfWordExists(word)">
+                                <Icon icon="solar:add-circle-bold" />
+                                <span>Add to Advanced</span>
+                            </div>
+                        </div>
+                    </template>
                 </div>
-                <div class="card" v-for="word in sortedWords" :key="word.id"
-                    v-if="sortedWords.length > 0 && !sortedWordsLoading" @click="advancedLearning(word)"
-                    :class="{ ifWordExists: checkIfWordExists(word) }">
-                    <h1>{{ word.word }}</h1>
-                    <p>{{ word.meaning }}</p>
-                    <p>{{ word.furigana }}</p>
-                    <p>{{ word.romaji }}</p>
-                    <p>Level : {{ word.level }}</p>
+
+                <div class="pagination-area" v-if="learnedWords.length > 12 && sortedWords.length === 0">
+                    <button v-if="wordSlice === 12" @click="showMore()" class="load-btn">
+                        <Icon icon="solar:Alt-arrow-down-bold" />
+                        Show All Learned ({{ learnedWords.length }})
+                    </button>
+                    <button v-else @click="showLess()" class="load-btn secondary">
+                        <Icon icon="solar:alt-arrow-up-bold" />
+                        Show Less
+                    </button>
                 </div>
-            </div>
-            <div class="show-more" v-if="learnedWords.length > 12 && sortedWords.length < 1 && wordSlice === 12">
-                <button @click="showMore()">Show More</button>
-            </div>
-            <div class="show-less" v-if="wordSlice !== 12">
-                <button @click="showLess()">Show Less</button>
             </div>
         </div>
     </main>
@@ -201,208 +215,403 @@ const showLess = (() => {
 
 <style lang="scss" scoped>
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
 
 main {
-    margin-top: 80px;
-}
-
-hr {
-    margin-top: 20px;
+    margin-top: 50px;
+    background-color: #f8fafc;
+    min-height: 100vh;
 }
 
 .container {
-    margin: 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Toast Notification Styles */
+.toast-card {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 2000;
+    padding: 16px 24px;
+    border-radius: 16px;
+    background: #1e293b;
+    color: white;
     display: flex;
-    flex-direction: column;
-    transition: ease-in-out 0.5s;
-    overflow-x: hidden;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 
-    .relearn-card {
-        max-width: 100%;
-        border-radius: 15px;
-        color: white;
-        padding: 15px;
-        background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-
-        button {
-            font-family: "Poppins", sans-serif;
-            border: none;
-            border-radius: 15px;
-            width: 100px;
-            padding: 5px;
-            margin-top: 10px;
-            cursor: pointer;
-            transition: ease-in-out 0.50s;
-
-            &:hover {
-                transform: scale(1.1);
-            }
-        }
-
-        .relearn-form {
-            margin-top: 10px;
-
-            label {
-                margin-bottom: 10px;
-            }
-
-            input {
-                font-family: "Poppins", sans-serif;
-                width: 100%;
-                margin-bottom: 15px;
-                border: none;
-                border-radius: 15px;
-                padding: 7px;
-                background-color: #dddd;
-            }
-
-            button {
-                width: 100%;
-
-                &:hover {
-                    transform: scale(1.010);
-                }
-            }
-        }
+    &.success {
+        background: #10b981;
     }
 
-    .card-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-
-        .card {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            text-align: center;
-            font-family: "Poppins", sans-serif;
-            background-color: #ecf0f1;
-            width: 270px;
-            height: 270px;
-            padding: 13px;
-            border-radius: 15px;
-            box-shadow: 10px 10px 46px -19px rgba(0, 0, 0, 0.75);
-            margin-top: 30px;
-            margin-bottom: 15px;
-            transition: ease-in-out 0.5s;
-            backdrop-filter: blur(10px);
-            cursor: pointer;
-            animation: moveUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-
-            &:hover {
-                transform: scale(1.020);
-            }
-
-            &:active {
-                color: white;
-                background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-            }
-
-            .button-action {
-                width: 100%;
-
-                button {
-                    font-family: "Poppins", sans-serif;
-                    border: none;
-                    padding: 5px;
-                    margin-top: 5px;
-                    border-radius: 15px;
-                    background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-                    color: white;
-                    transition: ease-in-out 0.5s;
-                    cursor: pointer;
-
-                    &:hover {
-                        transform: scale(1.030);
-                    }
-                }
-            }
-        }
-
-        .ifWordExists {
-            background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-            color: white;
-        }
-
-        .no-data {
-            margin-top: 10px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+    &.warning {
+        background: #f59e0b;
     }
 
-    .show-more {
-        display: flex;
-        justify-content: center;
-        margin-top: 50px;
-
-        button {
-            font-family: "Poppins", sans-serif;
-            background-color: red;
-            padding: 7px;
-            border: none;
-            border-radius: 15px;
-            width: 250px;
-            color: white;
-            text-align: center;
-            cursor: pointer;
-            transition: ease-in-out 0.25s;
-            background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-
-            &:hover {
-                transform: scale(1.1)
-            }
-        }
+    &.info {
+        background: #3a47d5;
     }
 
-    .show-less {
+    svg {
+        font-size: 20px;
+    }
+}
+
+/* Page Banner & Action Button */
+.relearn-banner {
+    background: linear-gradient(135deg, #00d2ff 0%, #3a47d5 100%);
+    border-radius: 24px;
+    padding: 30px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    box-shadow: 0 10px 30px rgba(58, 71, 213, 0.2);
+    margin-bottom: 20px;
+
+    .banner-text h2 {
+        font-size: 1.8rem;
+        margin-bottom: 5px;
+    }
+
+    .banner-text p {
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+
+    button {
+        background: white;
+        color: #3a47d5;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 14px;
+        font-weight: 700;
         display: flex;
-        justify-content: center;
-        margin-top: 50px;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: 0.3s;
 
-        button {
-            font-family: "Poppins", sans-serif;
-            background-color: red;
-            padding: 7px;
-            border: none;
-            border-radius: 15px;
-            width: 250px;
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+
+        &.btn-active {
+            background: #1e293b;
             color: white;
-            text-align: center;
-            cursor: pointer;
-            transition: ease-in-out 0.25s;
-            background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-
-            &:hover {
-                transform: scale(1.1)
-            }
         }
     }
 }
 
-@keyframes moveUp {
-    0% {
-        transform: scale(0);
+/* Form Styles */
+.setup-form-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .input-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 8px;
+    }
+
+    input,
+    select {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 2px solid #f1f5f9;
+        font-family: inherit;
+
+        &:focus {
+            border-color: #00d2ff;
+            outline: none;
+        }
+    }
+}
+
+.submit-btn {
+    width: 100%;
+    background: #1e293b;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+
+    &:hover {
+        background: #334155;
+    }
+
+    &:active {
+        transform: translateY(1px);
+    }
+
+    &:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+}
+
+/* Vocabulary Grid & Cards */
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f1f5f9;
+
+    h3 {
+        color: #1e293b;
+        font-weight: 700;
+
+        span {
+            color: #3a47d5;
+        }
+    }
+}
+
+.text-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: 0.2s;
+
+    &:hover {
+        background: #fef2f2;
+        color: #ef4444;
+    }
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 25px;
+}
+
+.vocab-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 220px;
+    overflow: hidden;
+
+    &:hover:not(.is-advanced) {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+
+        .hover-overlay {
+            opacity: 1;
+        }
+    }
+
+    &.is-advanced {
+        background: linear-gradient(145deg, #ffffff 0%, #f0f9ff 100%);
+        border-color: #00d2ff;
+        cursor: default;
+
+        .kanji {
+            color: #3a47d5;
+        }
+    }
+
+    .card-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        color: #00d2ff;
+        font-size: 1.2rem;
+    }
+
+    .card-top .furigana {
+        display: block;
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+
+    .card-top .kanji {
+        font-size: 2.2rem;
+        margin: 5px 0;
+        color: #1e293b;
+    }
+
+    .meaning {
+        color: #475569;
+        font-size: 1rem;
+        line-height: 1.4;
+        margin-bottom: 15px;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f8fafc;
+        padding-top: 15px;
+
+        .level-tag {
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .romaji {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+    }
+
+    .hover-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(58, 71, 213, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        gap: 10px;
         opacity: 0;
+        transition: 0.2s ease-in-out;
+        backdrop-filter: blur(4px);
+        font-weight: 600;
+    }
+}
+
+/* Pagination & Loading */
+.pagination-area {
+    margin-top: 50px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.load-btn {
+    background: white;
+    border: 2px solid #e2e8f0;
+    padding: 12px 40px;
+    border-radius: 50px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &:hover {
+        border-color: #3a47d5;
+        color: #3a47d5;
     }
 
-    50% {
-        border-radius: 15px;
+    &.secondary {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #475569;
+
+        &:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+            color: #1e293b;
+        }
+    }
+}
+
+.loader-box {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 100px 0;
+    color: #94a3b8;
+
+    .spinner {
+        font-size: 60px;
+        color: #3a47d5;
+        margin-bottom: 15px;
+    }
+}
+
+/* Transitions */
+.slide-enter-active,
+.slide-leave-active {
+    transition: all 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast-enter-from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.8);
+}
+
+.toast-leave-to {
+    opacity: 0;
+    transform: translateX(40px);
+}
+
+@media (max-width: 768px) {
+    .relearn-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+        padding: 30px 20px;
     }
 
-    90% {
-        border-radius: 15px;
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 1;
+    .form-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>
