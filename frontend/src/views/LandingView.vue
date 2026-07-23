@@ -85,13 +85,13 @@ const scrollTo = (id) => {
                 <div class="hero-visual">
                     <div class="visual-container">
                         <div class="app-card">
-                            <div class="app-header">
+                            <!-- <div class="app-header">
                                 <div class="pulse-container">
                                     <span class="pulse-dot"></span>
                                     <span class="pulse-text">Live Session</span>
                                 </div>
                                 <Icon icon="solar:menu-dots-bold" class="menu-icon" />
-                            </div>
+                            </div> -->
 
                             <div class="flashcard">
                                 <div class="card-tag">New Word</div>
